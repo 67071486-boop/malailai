@@ -63,10 +63,7 @@ def oauth_callback():
     code = request.args.get("code")
     state = request.args.get("state")
     if not code:
-        # 未携带 code 的直接访问，重定向到授权入口引导用户
-        redirect_uri = _DEFAULT_REDIRECT_URI or url_for("wxwork.oauth_callback", _external=True)
-        login_url = url_for("wxwork.oauth_login", _external=True) + "?redirect_uri=" + quote(redirect_uri, safe="")
-        return redirect(login_url)
+        return make_err_response("缺少 code"), 400
 
     suite_token = get_suite_access_token()
     if not suite_token:

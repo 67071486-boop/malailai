@@ -63,17 +63,14 @@ def oauth_callback():
     code = request.args.get("code")
     state = request.args.get("state")
     if not code:
-        # 未携带 code 的直接访问，重定向到授权入口引导用户
-        redirect_uri = _DEFAULT_REDIRECT_URI or url_for("wxwork.oauth_callback", _external=True)
-        login_url = url_for("wxwork.oauth_login", _external=True) + "?redirect_uri=" + quote(redirect_uri, safe="")
-        return redirect(login_url)
+        return make_err_response("缺少 code")
 
     suite_token = get_suite_access_token()
     if not suite_token:
         logging.getLogger("wxcloudrun.wxwork").error(
             "oauth_callback missing suite_access_token; code=%s args=%s", code, dict(request.args)
         )
-        return make_err_response("缺少 suite_ticket 或获取 suite_access_token 失败，请先确保回调已收到 suite_ticket"), 500
+        return make_err_response("缺少 suite_ticket 或获取 suite_access_token 失败，请先确保回调已收到 suite_ticket")
 
     try:
         resp = requests.get(
@@ -86,19 +83,16 @@ def oauth_callback():
         logging.getLogger("wxcloudrun.wxwork").exception(
             "Exception calling getuserinfo3rd: %s code=%s", exc, code
         )
-        return make_err_response(f"调用 getuserinfo3rd 异常: {exc}"), 500
+        return make_err_response(f"调用 getuserinfo3rd 异常: {exc}")
 
     if data.get("errcode", 0) != 0:
         logging.getLogger("wxcloudrun.wxwork").error(
             "getuserinfo3rd returned error: %s code=%s", data, code
         )
-        return make_err_response(f"getuserinfo3rd 失败: {data}"), 500
+        return make_err_response(f"getuserinfo3rd 失败: {data}")
 
-    # 将用户信息写入 session（如果已配置 SECRET_KEY）
-    try:
-        session["wx_user"] = data
-    except Exception:
-        logging.getLogger("wxcloudrun.wxwork").warning("Failed to write user info to session; ensure SECRET_KEY is set")
-
-    payload = {"state": state, "user_info": data}
+    payload = {
+        "state": state,
+        "user_info": data,
+    }
     return make_succ_response(payload)
