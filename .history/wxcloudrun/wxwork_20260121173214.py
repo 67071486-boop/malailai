@@ -27,9 +27,10 @@ _suite_token_expires = 0
 # 临时授权码缓存
 _auth_code = None
 
-wxwork_bp = Blueprint('wxwork', __name__, url_prefix='/wxwork')
+wxwork_bp = Blueprint("wxwork", __name__, url_prefix="/wxwork")
 
 logger = logging.getLogger(__name__)
+
 
 def validate_base_params(params, required):
     """校验基础参数"""
@@ -38,6 +39,7 @@ def validate_base_params(params, required):
         return False, f"Missing parameters: {', '.join(missing)}"
     return True, ""
 
+
 def validate_signature(crypto, signature, timestamp, nonce, data):
     """校验签名"""
     try:
@@ -45,6 +47,7 @@ def validate_signature(crypto, signature, timestamp, nonce, data):
         return True, ""
     except InvalidSignatureException:
         return False, "Invalid signature"
+
 
 def get_access_token():
     """获取企业微信 Access Token（带缓存）"""
@@ -59,8 +62,8 @@ def get_access_token():
         response = requests.get(url, timeout=10)
         data = response.json()
 
-        if data.get('errcode') == 0:
-            _access_token = data['access_token']
+        if data.get("errcode") == 0:
+            _access_token = data["access_token"]
             # Token 有效期7200秒，提前5分钟过期
             _token_expires = current_time + 7200 - 300
             logger.info("成功获取企业微信 Access Token")
@@ -71,6 +74,7 @@ def get_access_token():
     except Exception as e:
         logger.error(f"获取 Access Token 异常: {e}")
         return None
+
 
 def get_suite_access_token():
     """获取第三方应用 Suite Access Token（带缓存）"""
@@ -89,13 +93,13 @@ def get_suite_access_token():
         data = {
             "suite_id": WXWORK_SUITE_ID,
             "suite_secret": WXWORK_SUITE_SECRET,
-            "suite_ticket": _suite_ticket
+            "suite_ticket": _suite_ticket,
         }
         response = requests.post(url, json=data, timeout=10)
         result = response.json()
 
-        if result.get('errcode') == 0:
-            _suite_access_token = result['suite_access_token']
+        if result.get("errcode") == 0:
+            _suite_access_token = result["suite_access_token"]
             # Token 有效期7200秒，提前5分钟过期
             _suite_token_expires = current_time + 7200 - 300
             logger.info("成功获取 Suite Access Token")
@@ -121,13 +125,17 @@ def get_permanent_code(auth_code):
         response = requests.post(url, json=data, timeout=10)
         result = response.json()
 
-        if result.get('errcode') == 0:
-            permanent_code = result['permanent_code']
-            auth_corp_info = result.get('auth_corp_info', {})
-            corp_id = auth_corp_info.get('corpid')
+        if result.get("errcode") == 0:
+            permanent_code = result["permanent_code"]
+            auth_corp_info = result.get("auth_corp_info", {})
+            corp_id = auth_corp_info.get("corpid")
 
             # 保存到数据库
-            from wxcloudrun.dao import query_corp_auth, insert_corp_auth, update_corp_auth
+            from wxcloudrun.dao import (
+                query_corp_auth,
+                insert_corp_auth,
+                update_corp_auth,
+            )
             from wxcloudrun.model import CorpAuth
             import json
 
@@ -140,7 +148,7 @@ def get_permanent_code(auth_code):
                 corp_auth = CorpAuth(
                     corp_id=corp_id,
                     permanent_code=permanent_code,
-                    auth_corp_info=json.dumps(auth_corp_info)
+                    auth_corp_info=json.dumps(auth_corp_info),
                 )
                 insert_corp_auth(corp_auth)
 
@@ -163,122 +171,144 @@ def get_permanent_code(auth_code):
             "touser": user_id,
             "msgtype": "text",
             "agentid": WXWORK_AGENT_ID,
-            "text": {
-                "content": content
-            }
+            "text": {"content": content},
         }
 
         response = requests.post(url, json=data, timeout=10)
         result = response.json()
 
-        if result.get('errcode') == 0:
+        if result.get("errcode") == 0:
             logger.info(f"消息发送成功: {user_id}")
             return True, "发送成功"
         else:
             logger.error(f"消息发送失败: {result}")
-            return False, result.get('errmsg', '发送失败')
+            return False, result.get("errmsg", "发送失败")
     except Exception as e:
         logger.error(f"发送消息异常: {e}")
         return False, str(e)
 
-@wxwork_bp.route('/send_message', methods=['POST'])
+
+@wxwork_bp.route("/send_message", methods=["POST"])
 def send_message():
     """发送企业微信消息 API"""
     try:
         data = request.get_json()
-        user_id = data.get('user_id')
-        content = data.get('content')
+        user_id = data.get("user_id")
+        content = data.get("content")
 
         if not user_id or not content:
-            return jsonify({'code': 1, 'message': '缺少 user_id 或 content 参数'})
+            return jsonify({"code": 1, "message": "缺少 user_id 或 content 参数"})
 
         success, message = send_text_message(user_id, content)
 
         if success:
-            return jsonify({'code': 0, 'message': message})
+            return jsonify({"code": 0, "message": message})
         else:
-            return jsonify({'code': 1, 'message': message})
+            return jsonify({"code": 1, "message": message})
 
     except Exception as e:
         logger.error(f"发送消息API异常: {e}")
-        return jsonify({'code': 1, 'message': '服务器内部错误'})
+        return jsonify({"code": 1, "message": "服务器内部错误"})
 
-@wxwork_bp.route('/get_permanent_code', methods=['POST'])
+
+@wxwork_bp.route("/get_permanent_code", methods=["POST"])
 def get_permanent_code_api():
     """获取永久授权码 API"""
     try:
         data = request.get_json()
-        auth_code = data.get('auth_code') or _auth_code
+        auth_code = data.get("auth_code") or _auth_code
 
         if not auth_code:
-            return jsonify({'code': 1, 'message': '缺少 auth_code 参数，且缓存中无临时授权码'})
+            return jsonify(
+                {"code": 1, "message": "缺少 auth_code 参数，且缓存中无临时授权码"}
+            )
 
         result = get_permanent_code(auth_code)
         if result:
             permanent_code, auth_corp_info = result
-            return jsonify({'code': 0, 'permanent_code': permanent_code, 'auth_corp_info': auth_corp_info})
+            return jsonify(
+                {
+                    "code": 0,
+                    "permanent_code": permanent_code,
+                    "auth_corp_info": auth_corp_info,
+                }
+            )
         else:
-            return jsonify({'code': 1, 'message': '获取永久授权码失败'})
+            return jsonify({"code": 1, "message": "获取永久授权码失败"})
     except Exception as e:
         logger.error(f"获取永久授权码API异常: {e}")
-        return jsonify({'code': 1, 'message': '服务器内部错误'})
-@wxwork_bp.route('/callback', methods=['GET', 'POST'])
+        return jsonify({"code": 1, "message": "服务器内部错误"})
+
+
+@wxwork_bp.route("/callback", methods=["GET", "POST"])
 def callback():
     """企业微信回调处理"""
     try:
         crypto = WeChatCrypto(WXWORK_TOKEN, WXWORK_ENCODING_AES_KEY, WXWORK_SUITE_ID)
 
-        if request.method == 'GET':
+        if request.method == "GET":
             # GET 请求：验证回调 URL
-            msg_signature = request.args.get('msg_signature')
-            timestamp = request.args.get('timestamp')
-            nonce = request.args.get('nonce')
-            echostr = request.args.get('echostr')
+            msg_signature = request.args.get("msg_signature")
+            timestamp = request.args.get("timestamp")
+            nonce = request.args.get("nonce")
+            echostr = request.args.get("echostr")
 
             if not all([msg_signature, timestamp, nonce, echostr]):
-                return 'Invalid parameters', 400
+                return "Invalid parameters", 400
 
             try:
-                decrypted_echostr = crypto.decrypt_message(echostr, msg_signature, timestamp, nonce)
+                decrypted_echostr = crypto.decrypt_message(
+                    echostr, msg_signature, timestamp, nonce
+                )
                 logger.info(f"解密后的echostr: {decrypted_echostr}")
                 return decrypted_echostr
             except InvalidSignatureException:
-                return 'Invalid signature', 400
+                return "Invalid signature", 400
 
-        elif request.method == 'POST':
+        elif request.method == "POST":
             # POST 请求：处理回调消息
-            msg_signature = request.args.get('msg_signature')
-            timestamp = request.args.get('timestamp')
-            nonce = request.args.get('nonce')
+            msg_signature = request.args.get("msg_signature")
+            timestamp = request.args.get("timestamp")
+            nonce = request.args.get("nonce")
 
             if not all([msg_signature, timestamp, nonce]):
-                return jsonify({'code': 1, 'message': 'Invalid parameters'}), 400
+                return jsonify({"code": 1, "message": "Invalid parameters"}), 400
 
             # 获取加密消息
-            encrypted_xml = request.data.decode('utf-8')
+            encrypted_xml = request.data.decode("utf-8")
 
             try:
                 # 解密消息
-                decrypted_xml = crypto.decrypt_message(encrypted_xml, msg_signature, timestamp, nonce)
+                decrypted_xml = crypto.decrypt_message(
+                    encrypted_xml, msg_signature, timestamp, nonce
+                )
                 logger.info(f"解密后的消息: {decrypted_xml}")
 
                 # 检查是否为有效XML
-                if not decrypted_xml.startswith('<'):
+                if not decrypted_xml.startswith("<"):
                     logger.error(f"解密结果不是XML格式: {decrypted_xml}")
-                    return jsonify({'code': 1, 'message': 'Invalid decrypted content'}), 400
+                    return (
+                        jsonify({"code": 1, "message": "Invalid decrypted content"}),
+                        400,
+                    )
 
                 # 解析 XML 为 dict
                 import xml.etree.ElementTree as ET
-                root = ET.fromstring(decrypted_xml)
-                info_type = root.find('InfoType').text if root.find('InfoType') is not None else None
 
-                if info_type == 'suite_ticket':
-                    suite_ticket = root.find('SuiteTicket').text
+                root = ET.fromstring(decrypted_xml)
+                info_type = (
+                    root.find("InfoType").text
+                    if root.find("InfoType") is not None
+                    else None
+                )
+
+                if info_type == "suite_ticket":
+                    suite_ticket = root.find("SuiteTicket").text
                     global _suite_ticket
                     _suite_ticket = suite_ticket
                     logger.info(f"收到 Suite Ticket: {suite_ticket}")
-                elif info_type == 'create_auth':
-                    auth_code = root.find('AuthCode').text
+                elif info_type == "create_auth":
+                    auth_code = root.find("AuthCode").text
                     global _auth_code
                     _auth_code = auth_code
                     logger.info(f"收到临时授权码: {auth_code}")
@@ -294,14 +324,14 @@ def callback():
                 # TODO: 处理其他业务逻辑
 
                 # 响应 success
-                return 'success'
+                return "success"
 
             except InvalidSignatureException:
-                return jsonify({'code': 1, 'message': 'Invalid signature'}), 400
+                return jsonify({"code": 1, "message": "Invalid signature"}), 400
             except Exception as e:
                 logger.error(f"解密异常: {e}")
-                return jsonify({'code': 1, 'message': 'Decrypt failed'}), 500
+                return jsonify({"code": 1, "message": "Decrypt failed"}), 500
 
     except Exception as e:
         logger.error(f"回调处理异常: {e}")
-        return jsonify({'code': 1, 'message': '处理失败'}), 500
+        return jsonify({"code": 1, "message": "处理失败"}), 500

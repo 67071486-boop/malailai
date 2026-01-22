@@ -28,9 +28,10 @@ _suite_token_expires = 0
 _access_token = None
 _token_expires = 0
 
-wxwork_bp = Blueprint('wxwork', __name__, url_prefix='/wxwork')
+wxwork_bp = Blueprint("wxwork", __name__, url_prefix="/wxwork")
 
 logger = logging.getLogger(__name__)
+
 
 def get_access_token():
     """获取企业微信 Access Token（带缓存）"""
@@ -45,8 +46,8 @@ def get_access_token():
         response = requests.get(url, timeout=10)
         data = response.json()
 
-        if data.get('errcode') == 0:
-            _access_token = data['access_token']
+        if data.get("errcode") == 0:
+            _access_token = data["access_token"]
             # Token 有效期7200秒，提前5分钟过期
             _token_expires = current_time + 7200 - 300
             logger.info("成功获取企业微信 Access Token")
@@ -57,6 +58,7 @@ def get_access_token():
     except Exception as e:
         logger.error(f"获取 Access Token 异常: {e}")
         return None
+
 
 def get_suite_access_token():
     """获取第三方应用 Suite Access Token（带缓存）"""
@@ -75,13 +77,13 @@ def get_suite_access_token():
         data = {
             "suite_id": WXWORK_SUITE_ID,
             "suite_secret": WXWORK_SUITE_SECRET,
-            "suite_ticket": _suite_ticket
+            "suite_ticket": _suite_ticket,
         }
         response = requests.post(url, json=data, timeout=10)
         result = response.json()
 
-        if result.get('errcode') == 0:
-            _suite_access_token = result['suite_access_token']
+        if result.get("errcode") == 0:
+            _suite_access_token = result["suite_access_token"]
             # Token 有效期7200秒，提前5分钟过期
             _suite_token_expires = current_time + 7200 - 300
             logger.info("成功获取 Suite Access Token")
@@ -103,97 +105,101 @@ def get_suite_access_token():
             "touser": user_id,
             "msgtype": "text",
             "agentid": WXWORK_AGENT_ID,
-            "text": {
-                "content": content
-            }
+            "text": {"content": content},
         }
 
         response = requests.post(url, json=data, timeout=10)
         result = response.json()
 
-        if result.get('errcode') == 0:
+        if result.get("errcode") == 0:
             logger.info(f"消息发送成功: {user_id}")
             return True, "发送成功"
         else:
             logger.error(f"消息发送失败: {result}")
-            return False, result.get('errmsg', '发送失败')
+            return False, result.get("errmsg", "发送失败")
     except Exception as e:
         logger.error(f"发送消息异常: {e}")
         return False, str(e)
 
-@wxwork_bp.route('/send_message', methods=['POST'])
+
+@wxwork_bp.route("/send_message", methods=["POST"])
 def send_message():
     """发送企业微信消息 API"""
     try:
         data = request.get_json()
-        user_id = data.get('user_id')
-        content = data.get('content')
+        user_id = data.get("user_id")
+        content = data.get("content")
 
         if not user_id or not content:
-            return jsonify({'code': 1, 'message': '缺少 user_id 或 content 参数'})
+            return jsonify({"code": 1, "message": "缺少 user_id 或 content 参数"})
 
         success, message = send_text_message(user_id, content)
 
         if success:
-            return jsonify({'code': 0, 'message': message})
+            return jsonify({"code": 0, "message": message})
         else:
-            return jsonify({'code': 1, 'message': message})
+            return jsonify({"code": 1, "message": message})
 
     except Exception as e:
         logger.error(f"发送消息API异常: {e}")
-        return jsonify({'code': 1, 'message': '服务器内部错误'})
+        return jsonify({"code": 1, "message": "服务器内部错误"})
 
-@wxwork_bp.route('/callback', methods=['GET', 'POST'])
+
+@wxwork_bp.route("/callback", methods=["GET", "POST"])
 def callback():
     """企业微信回调处理"""
     try:
         crypto = WeChatCrypto(WXWORK_TOKEN, WXWORK_ENCODING_AES_KEY, WXWORK_CORP_ID)
 
-        if request.method == 'GET':
+        if request.method == "GET":
             # GET 请求：验证回调 URL
-            msg_signature = request.args.get('msg_signature')
-            timestamp = request.args.get('timestamp')
-            nonce = request.args.get('nonce')
-            echostr = request.args.get('echostr')
+            msg_signature = request.args.get("msg_signature")
+            timestamp = request.args.get("timestamp")
+            nonce = request.args.get("nonce")
+            echostr = request.args.get("echostr")
 
             if not all([msg_signature, timestamp, nonce, echostr]):
-                return 'Invalid parameters', 400
+                return "Invalid parameters", 400
 
             try:
-                decrypted_echostr = crypto.check_signature(msg_signature, timestamp, nonce, echostr)
+                decrypted_echostr = crypto.check_signature(
+                    msg_signature, timestamp, nonce, echostr
+                )
                 return decrypted_echostr
             except InvalidSignatureException:
-                return 'Invalid signature', 400
+                return "Invalid signature", 400
 
-        elif request.method == 'POST':
+        elif request.method == "POST":
             # POST 请求：处理回调消息
-            msg_signature = request.args.get('msg_signature')
-            timestamp = request.args.get('timestamp')
-            nonce = request.args.get('nonce')
+            msg_signature = request.args.get("msg_signature")
+            timestamp = request.args.get("timestamp")
+            nonce = request.args.get("nonce")
 
             if not all([msg_signature, timestamp, nonce]):
-                return jsonify({'code': 1, 'message': 'Invalid parameters'}), 400
+                return jsonify({"code": 1, "message": "Invalid parameters"}), 400
 
             # 获取加密消息
-            encrypted_xml = request.data.decode('utf-8')
+            encrypted_xml = request.data.decode("utf-8")
 
             try:
                 # 解密消息
-                decrypted_xml = crypto.decrypt_message(encrypted_xml, msg_signature, timestamp, nonce)
+                decrypted_xml = crypto.decrypt_message(
+                    encrypted_xml, msg_signature, timestamp, nonce
+                )
                 logger.info(f"解密后的消息: {decrypted_xml}")
 
                 # TODO: 解析 decrypted_xml 并处理业务逻辑
                 # 例如，解析 XML 为 dict，处理事件
 
                 # 响应 success
-                return 'success'
+                return "success"
 
             except InvalidSignatureException:
-                return jsonify({'code': 1, 'message': 'Invalid signature'}), 400
+                return jsonify({"code": 1, "message": "Invalid signature"}), 400
             except Exception as e:
                 logger.error(f"解密异常: {e}")
-                return jsonify({'code': 1, 'message': 'Decrypt failed'}), 500
+                return jsonify({"code": 1, "message": "Decrypt failed"}), 500
 
     except Exception as e:
         logger.error(f"回调处理异常: {e}")
-        return jsonify({'code': 1, 'message': '处理失败'}), 500
+        return jsonify({"code": 1, "message": "处理失败"}), 500

@@ -13,17 +13,20 @@ pymysql.install_as_MySQLdb()
 
 # 初始化web应用
 app = Flask(__name__, instance_relative_config=True)
-app.config['DEBUG'] = config.DEBUG
+app.config["DEBUG"] = config.DEBUG
 
 # 创建数据库如果不存在
-server_uri = 'mysql://{}:{}@{}'.format(config.username, config.password, config.db_address)
+server_uri = "mysql://{}:{}@{}".format(
+    config.username, config.password, config.db_address
+)
 engine = create_engine(server_uri)
 with engine.connect() as conn:
     conn.execute(text("CREATE DATABASE IF NOT EXISTS flask_demo"))
 
 # 设定数据库链接
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://{}:{}@{}/flask_demo'.format(config.username, config.password,
-                                                                             config.db_address)
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://{}:{}@{}/flask_demo".format(
+    config.username, config.password, config.db_address
+)
 
 # 初始化DB操作对象
 db = SQLAlchemy(app)
@@ -36,4 +39,4 @@ from wxcloudrun import wxwork
 app.register_blueprint(wxwork.wxwork_bp)
 
 # 加载配置
-app.config.from_object('config')
+app.config.from_object("config")

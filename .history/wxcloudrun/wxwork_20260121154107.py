@@ -17,9 +17,10 @@ WXWORK_ENCODING_AES_KEY = os.getenv("WXWORK_ENCODING_AES_KEY", "your_aes_key")
 _access_token = None
 _token_expires = 0
 
-wxwork_bp = Blueprint('wxwork', __name__, url_prefix='/wxwork')
+wxwork_bp = Blueprint("wxwork", __name__, url_prefix="/wxwork")
 
 logger = logging.getLogger(__name__)
+
 
 def get_access_token():
     """获取企业微信 Access Token（带缓存）"""
@@ -34,8 +35,8 @@ def get_access_token():
         response = requests.get(url, timeout=10)
         data = response.json()
 
-        if data.get('errcode') == 0:
-            _access_token = data['access_token']
+        if data.get("errcode") == 0:
+            _access_token = data["access_token"]
             # Token 有效期7200秒，提前5分钟过期
             _token_expires = current_time + 7200 - 300
             logger.info("成功获取企业微信 Access Token")
@@ -46,6 +47,7 @@ def get_access_token():
     except Exception as e:
         logger.error(f"获取 Access Token 异常: {e}")
         return None
+
 
 def send_text_message(user_id, content):
     """发送文本消息"""
@@ -59,47 +61,47 @@ def send_text_message(user_id, content):
             "touser": user_id,
             "msgtype": "text",
             "agentid": WXWORK_AGENT_ID,
-            "text": {
-                "content": content
-            }
+            "text": {"content": content},
         }
 
         response = requests.post(url, json=data, timeout=10)
         result = response.json()
 
-        if result.get('errcode') == 0:
+        if result.get("errcode") == 0:
             logger.info(f"消息发送成功: {user_id}")
             return True, "发送成功"
         else:
             logger.error(f"消息发送失败: {result}")
-            return False, result.get('errmsg', '发送失败')
+            return False, result.get("errmsg", "发送失败")
     except Exception as e:
         logger.error(f"发送消息异常: {e}")
         return False, str(e)
 
-@wxwork_bp.route('/send_message', methods=['POST'])
+
+@wxwork_bp.route("/send_message", methods=["POST"])
 def send_message():
     """发送企业微信消息 API"""
     try:
         data = request.get_json()
-        user_id = data.get('user_id')
-        content = data.get('content')
+        user_id = data.get("user_id")
+        content = data.get("content")
 
         if not user_id or not content:
-            return jsonify({'code': 1, 'message': '缺少 user_id 或 content 参数'})
+            return jsonify({"code": 1, "message": "缺少 user_id 或 content 参数"})
 
         success, message = send_text_message(user_id, content)
 
         if success:
-            return jsonify({'code': 0, 'message': message})
+            return jsonify({"code": 0, "message": message})
         else:
-            return jsonify({'code': 1, 'message': message})
+            return jsonify({"code": 1, "message": message})
 
     except Exception as e:
         logger.error(f"发送消息API异常: {e}")
-        return jsonify({'code': 1, 'message': '服务器内部错误'})
+        return jsonify({"code": 1, "message": "服务器内部错误"})
 
-@wxwork_bp.route('/callback', methods=['POST'])
+
+@wxwork_bp.route("/callback", methods=["POST"])
 def callback():
     """企业微信回调处理"""
     try:
@@ -110,8 +112,8 @@ def callback():
         # TODO: 实现回调消息处理逻辑
         logger.info(f"收到回调消息: {data}")
 
-        return jsonify({'code': 0, 'message': 'success'})
+        return jsonify({"code": 0, "message": "success"})
 
     except Exception as e:
         logger.error(f"回调处理异常: {e}")
-        return jsonify({'code': 1, 'message': '处理失败'})
+        return jsonify({"code": 1, "message": "处理失败"})

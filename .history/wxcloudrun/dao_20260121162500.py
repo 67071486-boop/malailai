@@ -6,7 +6,7 @@ from wxcloudrun import db
 from wxcloudrun.model import Counters, CorpAuth
 
 # 初始化日志
-logger = logging.getLogger('log')
+logger = logging.getLogger("log")
 
 
 def query_counterbyid(id):
