@@ -2,7 +2,8 @@ import json
 from threading import Thread
 from typing import Optional, Tuple
 import requests
-import traceback
+
+import logging
 
 from wxcloudrun.dao import query_corp_auth, insert_corp_auth, update_corp_auth
 from wxcloudrun.model import new_corp_auth
@@ -20,11 +21,14 @@ def get_permanent_code(auth_code: str) -> Optional[Tuple[str, dict]]:
         f"?suite_access_token={suite_token}"
     )
     payload = {"auth_code": auth_code}
+    logger = logging.getLogger("wxcloudrun.auth_service")
     try:
         resp = requests.post(url, json=payload, timeout=10)
         result = resp.json()
         if result.get("errcode", 0) != 0:
-            print("get_permanent_code failed:", result, "payload=", payload)
+            logger.error(
+                "get_permanent_code failed: %s payload=%s", result, payload
+            )
             return None
         permanent_code = result.get("permanent_code")
         auth_corp_info = result.get("auth_corp_info", {})
@@ -43,16 +47,15 @@ def get_permanent_code(auth_code: str) -> Optional[Tuple[str, dict]]:
             )
             insert_corp_auth(corp_auth)
 
-        # Print success, mask most of permanent_code (keep last 6 chars)
+        # Log success, mask most of permanent_code (keep last 6 chars)
         try:
             masked = f"****{permanent_code[-6:]}" if permanent_code else "(none)"
         except Exception:
             masked = "(masked)"
-        print(f"Got permanent_code for corp_id={corp_id} saved: {masked}")
+        logger.info("Got permanent_code for corp_id=%s saved: %s", corp_id, masked)
         return permanent_code, auth_corp_info
     except Exception as e:
-        print(f"Exception in get_permanent_code for auth_code={auth_code}: {e}")
-        traceback.print_exc()
+        logger.exception("Exception in get_permanent_code for auth_code=%s: %s", auth_code, e)
         return None
 
 
