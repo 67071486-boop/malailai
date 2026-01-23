@@ -15,14 +15,14 @@ _DEFAULT_REDIRECT_URI = os.getenv("WXWORK_OAUTH_REDIRECT")
 @wxwork_bp.route("/callback/data", methods=["GET", "POST"])
 def callback_data():
     """企业微信数据回调，解密和分发由 callback_service 处理。"""
-    print("[数据回调入口] ", flush=True)
+    print("[wxwork] 数据回调入口", flush=True)
     return handle_data_callback(request)
 
 
 @wxwork_bp.route("/callback/command", methods=["GET", "POST"])
 def callback_command():
     """企业微信指令回调（suite_ticket、create_auth 等）。"""
-    print("[指令回调入口] ", flush=True)
+    print("[wxwork] 指令回调入口", flush=True)
     return handle_command_callback(request)
 
 @wxwork_bp.route("/oauth/login", methods=["GET"])

@@ -15,14 +15,14 @@ _DEFAULT_REDIRECT_URI = os.getenv("WXWORK_OAUTH_REDIRECT")
 @wxwork_bp.route("/callback/data", methods=["GET", "POST"])
 def callback_data():
     """企业微信数据回调，解密和分发由 callback_service 处理。"""
-    print("[数据回调入口] ", flush=True)
+    print("[wxwork] 数据回调入口", flush=True)
     return handle_data_callback(request)
 
 
 @wxwork_bp.route("/callback/command", methods=["GET", "POST"])
 def callback_command():
     """企业微信指令回调（suite_ticket、create_auth 等）。"""
-    print("[指令回调入口] ", flush=True)
+    print("[wxwork] 指令回调入口", flush=True)
     return handle_command_callback(request)
 
 @wxwork_bp.route("/oauth/login", methods=["GET"])
@@ -53,12 +53,12 @@ def oauth_callback():
         # 未携带 code 的直接访问，重定向到授权入口引导用户
         redirect_uri = _DEFAULT_REDIRECT_URI or url_for("wxwork.oauth_callback", _external=True)
         login_url = url_for("wxwork.oauth_login", _external=True) + "?redirect_uri=" + quote(redirect_uri, safe="")
-        print("[wxwork] oauth_callback 未带 code，重定向到授权入口", flush=True)
+        print("[wxwork] oauth_callback 未带 code，重定向到授权入口")
         return redirect(login_url)
 
     suite_token = get_suite_access_token()
     if not suite_token:
-        print("[wxwork] oauth_callback 缺少 suite_access_token，请先确保收到 suite_ticket。code=", code, "args=", dict(request.args), flush=True)
+        print("[wxwork] oauth_callback 缺少 suite_access_token，请先确保收到 suite_ticket。code=", code, "args=", dict(request.args))
         return make_err_response("缺少 suite_ticket 或获取 suite_access_token 失败，请先确保回调已收到 suite_ticket"), 500
 
     try:
@@ -71,20 +71,20 @@ def oauth_callback():
     except Exception as exc:
         import traceback
 
-        print("[wxwork] 调用 getuserinfo3rd 异常 code=", code, "exc=", exc, flush=True)
+        print("[wxwork] 调用 getuserinfo3rd 异常 code=", code, "exc=", exc)
         traceback.print_exc()
         return make_err_response(f"调用 getuserinfo3rd 异常: {exc}"), 500
 
     if data.get("errcode", 0) != 0:
-        print("[wxwork] getuserinfo3rd 返回错误:", data, "code=", code, flush=True)
+        print("[wxwork] getuserinfo3rd 返回错误:", data, "code=", code)
         return make_err_response(f"getuserinfo3rd 失败: {data}"), 500
 
     # 将用户信息写入 session（如果已配置 SECRET_KEY）
     try:
         session["wx_user"] = data
     except Exception:
-        print("[wxwork] 写入 session 失败，请确认 SECRET_KEY 已配置", flush=True)
+        print("[wxwork] 写入 session 失败，请确认 SECRET_KEY 已配置")
 
-    print("[wxwork] oauth_callback 成功 user_info keys=", list(data.keys()), "state=", state, flush=True)
+    print("[wxwork] oauth_callback 成功 user_info keys=", list(data.keys()), "state=", state)
     payload = {"state": state, "user_info": data}
     return make_succ_response(payload)

@@ -24,7 +24,7 @@ def get_permanent_code(auth_code: str) -> Optional[Tuple[str, dict]]:
         resp = requests.post(url, json=payload, timeout=10)
         result = resp.json()
         if result.get("errcode", 0) != 0:
-            print("[auth_service] 获取永久授权码失败:", result, "payload=", payload, flush=True)
+            print("[auth_service] 获取永久授权码失败:", result, "payload=", payload)
             return None
         permanent_code = result.get("permanent_code")
         auth_corp_info = result.get("auth_corp_info", {})
@@ -48,10 +48,10 @@ def get_permanent_code(auth_code: str) -> Optional[Tuple[str, dict]]:
             masked = f"****{permanent_code[-6:]}" if permanent_code else "(none)"
         except Exception:
             masked = "(masked)"
-        print(f"[auth_service] 已获取并保存永久授权码 corp_id={corp_id} code={masked}", flush=True)
+        print(f"[auth_service] 已获取并保存永久授权码 corp_id={corp_id} code={masked}")
         return permanent_code, auth_corp_info
     except Exception as e:
-        print(f"[auth_service] 获取永久授权码异常 auth_code={auth_code}: {e}", flush=True)
+        print(f"[auth_service] 获取永久授权码异常 auth_code={auth_code}: {e}")
         traceback.print_exc()
         return None
 
