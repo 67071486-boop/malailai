@@ -1,5 +1,5 @@
 """企业授权 / corp_token 相关 API。"""
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 from .base import BaseClient, WeComApiError
 from .token_provider import SuiteTokenProvider, CorpTokenProvider
 

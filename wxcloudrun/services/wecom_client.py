@@ -28,4 +28,6 @@ __all__ = [
     "get_corp_client",
     "fetch_suite_access_token",
     "fetch_corp_access_token",
+    "fetch_auth_info",
+    "fetch_pre_auth_code",
 ]
