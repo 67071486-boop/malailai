@@ -141,14 +141,14 @@ pip install -r requirements.txt
 ## 代码组织
 
 ### 关键文件
-<!-- - [run.py]：应用入口，解析命令行参数启动 Flask
-- [config.py]：环境变量配置（MONGO_URI、DEBUG）
-- [wxcloudrun/__init__.py]：Flask 应用初始化、蓝图注册
-- [wxcloudrun/dao.py]：MongoDB 访问层（PyMongo + 日志）
-- [wxcloudrun/model.py]：文档构造函数（`new_counter`、`new_corp_auth`）
-- [wxcloudrun/views.py]：计数器 API 路由（`@app.route`）
-- [wxcloudrun/wxwork.py]：企业微信 Blueprint（`@wxwork_bp.route`）
-- [wxcloudrun/wechat_official/]：企业微信加解密库（WXBizMsgCrypt） -->
+<!-- - [run.py](run.py)：应用入口，解析命令行参数启动 Flask
+- [config.py](config.py)：环境变量配置（MONGO_URI、DEBUG）
+<!-- - [wxcloudrun/__init__.py](wxcloudrun/__init__.py)：Flask 应用初始化、蓝图注册 -->
+- [wxcloudrun/dao.py](wxcloudrun/dao.py)：MongoDB 访问层（PyMongo + 日志）
+- [wxcloudrun/model.py](wxcloudrun/model.py)：文档构造函数（`new_counter`、`new_corp_auth`）
+- [wxcloudrun/views.py](wxcloudrun/views.py)：计数器 API 路由（`@app.route`）
+- [wxcloudrun/wxwork.py](wxcloudrun/wxwork.py)：企业微信 Blueprint（`@wxwork_bp.route`）
+- [wxcloudrun/wechat_official/](wxcloudrun/wechat_official/)：企业微信加解密库（WXBizMsgCrypt） -->
 
 ### Blueprint 扩展模式
 ```python
