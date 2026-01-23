@@ -16,6 +16,10 @@ from wxcloudrun.services.wecom import (
     fetch_pre_auth_code,
     fetch_app_permissions,
     fetch_corp_token,
+    ContactManager,
+    get_contact_manager,
+    "ContactManager",
+    "get_contact_manager",
 )
 
 
