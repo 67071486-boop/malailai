@@ -11,7 +11,7 @@ from .suite_api import SuiteApi, fetch_suite_access_token
 from .corp_auth_api import CorpAuthApi, fetch_corp_access_token
 from .contact_api import ContactApi
 from .message_api import MessageApi
-from .app_auth_api import AppAuthApi, fetch_pre_auth_code, fetch_auth_info
+from .app_auth_api import AppAuthApi, fetch_pre_auth_code, fetch_auth_info, fetch_app_permissions, fetch_corp_token
 from .token_provider import SuiteTokenProvider, CorpTokenProvider
 
 _shared_session = requests.Session()
@@ -109,5 +109,7 @@ __all__ = [
     "fetch_corp_access_token",
     "fetch_auth_info",
     "fetch_pre_auth_code",
+    "fetch_app_permissions",
+    "fetch_corp_token",
     "CorpClient",
 ]
