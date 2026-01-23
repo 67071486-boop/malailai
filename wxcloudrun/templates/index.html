@@ -262,6 +262,16 @@
         <button id="btn-update-corp-auths" class="btn btn-primary">更新 corp_auth 授权信息</button>
         <div id="update-result" style="max-width: 520px; word-break:break-word; text-align:center; margin-top:8px;"></div>
       </div>
+      <div style="margin-top: 12px; display:flex; gap:8px; flex-direction:column; align-items:center;">
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input id="input-access-token" class="form-control" placeholder="access_token (测试用)" style="width:320px;" />
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input id="input-dept-id" class="form-control" placeholder="部门 id（可选）" style="width:320px;" />
+        </div>
+        <button id="btn-dept-simplelist" class="btn btn-secondary">测试：获取子部门ID列表</button>
+        <pre id="dept-simplelist-result" style="max-width: 520px; white-space: pre-wrap; word-break: break-word; text-align:left; margin-top:8px; background:#f8f9fa; padding:8px; border-radius:4px;"></pre>
+      </div>
       <div>
         <div class="hr">
           <span class="hr-text">快速入门</span>
@@ -351,6 +361,30 @@
         $('#update-result').text('请求失败: ' + (xhr.responseText || xhr.statusText));
       }).always(function(){
         $('#btn-update-corp-auths').prop('disabled', false).text('更新 corp_auth 授权信息');
+      });
+    });
+    $("#btn-dept-simplelist").on('click', function(){
+      var token = $("#input-access-token").val();
+      var id = $("#input-dept-id").val();
+      $(this).prop('disabled', true).text('请求中...');
+      $('#dept-simplelist-result').text('');
+      var payload = { access_token: token };
+      if(id) payload.id = isNaN(Number(id)) ? id : Number(id);
+      $.ajax('/api/department/simplelist', {
+        method: 'POST',
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        data: JSON.stringify(payload)
+      }).done(function(res){
+        if(res && res.data){
+          $('#dept-simplelist-result').text(JSON.stringify(res.data, null, 2));
+        } else {
+          $('#dept-simplelist-result').text('未知响应: ' + JSON.stringify(res));
+        }
+      }).fail(function(xhr){
+        $('#dept-simplelist-result').text('请求失败: ' + (xhr.responseText || xhr.statusText));
+      }).always(function(){
+        $('#btn-dept-simplelist').prop('disabled', false).text('测试：获取子部门ID列表');
       });
     });
   });

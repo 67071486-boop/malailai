@@ -16,7 +16,7 @@ from wxcloudrun.response import (
 import json
 from datetime import datetime
 from wxcloudrun.dao import query_all_corp_auths, update_corp_auth
-from wxcloudrun.services.wecom_client import fetch_auth_info, WeComApiError
+from wxcloudrun.services.wecom_client import fetch_auth_info, WeComApiError, get_contact_manager
 
 
 @app.route("/")
@@ -109,3 +109,24 @@ def update_corp_auths():
             results["failed"] += 1
             results["errors"].append({"corp_id": doc.get("corp_id"), "error": str(e)})
     return make_succ_response(results)
+
+
+@app.route("/api/department/simplelist", methods=["POST"])
+def department_simplelist():
+    """测试接口：调用 ContactManager.simplelist_departments，返回部门 ID 列表。
+
+    请求示例：{"access_token": "...", "id": 1}
+    """
+    try:
+        params = request.get_json() or {}
+        access_token = params.get("access_token")
+        dept_id = params.get("id")
+        if not access_token:
+            return make_err_response("missing access_token")
+        cm = get_contact_manager()
+        data = cm.simplelist_departments(access_token, id=dept_id)
+        return make_succ_response(data)
+    except WeComApiError as e:
+        return make_err_response(str(e))
+    except Exception as e:
+        return make_err_response(str(e))
