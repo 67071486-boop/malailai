@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional
 from .base import BaseClient, WeComApiError
 from .token_provider import SuiteTokenProvider
 from .suite_api import SuiteApi
+from typing import cast
 
 
 class AppAuthApi(BaseClient):
@@ -53,6 +54,44 @@ class AppAuthApi(BaseClient):
         self._raise_if_errcode(data, "get_auth_info", required_keys=["auth_corp_info"])
         return data
 
+    def get_corp_token(self, auth_corpid: str, permanent_code: str) -> Dict[str, Any]:
+        """根据企业的 `auth_corpid` 和 `permanent_code` 获取该企业的 access_token。
+
+        该接口用于第三方服务商在取得永久授权码后，向企业微信申请企业 access_token，
+        获取到的 `access_token` 可用于后续调用企业接口（通讯录、消息等）。
+
+        请求说明：POST https://qyapi.weixin.qq.com/cgi-bin/service/get_corp_token?suite_access_token=SUITE_ACCESS_TOKEN
+        请求体：{"auth_corpid": auth_corpid, "permanent_code": permanent_code}
+
+        返回示例包含 `access_token` 与 `expires_in`。
+        """
+        token = self.token_provider.get_suite_access_token()
+        if not token:
+            raise WeComApiError("missing suite_access_token")
+        url = "https://qyapi.weixin.qq.com/cgi-bin/service/get_corp_token"
+        payload = {"auth_corpid": auth_corpid, "permanent_code": permanent_code}
+        data = self._do_post(url + f"?suite_access_token={token}", json=payload)
+        self._raise_if_errcode(data, "get_corp_token", required_keys=["access_token", "expires_in"])
+        return data
+
+    def get_app_permissions(self, access_token: str) -> Dict[str, Any]:
+        """获取指定应用的权限详情。
+
+        请求地址：POST https://qyapi.weixin.qq.com/cgi-bin/agent/get_permissions?access_token=ACCESS_TOKEN
+
+        参数说明：
+        - `access_token`：代开发自建应用的 access_token 或第三方应用通过 `get_corp_token` 获取的企业 access_token。
+
+        返回包含 `app_permissions` 列表，表示应用拥有的权限字符串。
+        """
+        if not access_token:
+            raise WeComApiError("missing access_token")
+        url = "https://qyapi.weixin.qq.com/cgi-bin/agent/get_permissions"
+        # 接口要求 POST，但 body 可为空
+        data = self._do_post(url + f"?access_token={access_token}", json={})
+        self._raise_if_errcode(data, "get_app_permissions", required_keys=["app_permissions"])
+        return data
+
 
 def fetch_pre_auth_code(
     suite_id: str,
@@ -78,3 +117,30 @@ def fetch_auth_info(
     provider = token_provider or SuiteTokenProvider()
     client = AppAuthApi(session=session, timeout=timeout, token_provider=provider)
     return client.get_auth_info(auth_corpid, permanent_code)
+
+
+def fetch_corp_token(
+    auth_corpid: str,
+    permanent_code: str,
+    *,
+    session=None,
+    timeout: int = 10,
+    token_provider: Optional[SuiteTokenProvider] = None,
+) -> Dict[str, Any]:
+    """便捷函数：使用 `AppAuthApi` 获取企业 access_token 并返回响应数据。"""
+    provider = token_provider or SuiteTokenProvider()
+    client = AppAuthApi(session=session, timeout=timeout, token_provider=provider)
+    return client.get_corp_token(auth_corpid, permanent_code)
+
+
+def fetch_app_permissions(
+    access_token: str,
+    *,
+    session=None,
+    timeout: int = 10,
+    token_provider: Optional[SuiteTokenProvider] = None,
+) -> Dict[str, Any]:
+    """便捷函数：使用 `AppAuthApi` 获取应用权限详情（app_permissions）。"""
+    provider = token_provider or SuiteTokenProvider()
+    client = AppAuthApi(session=session, timeout=timeout, token_provider=provider)
+    return client.get_app_permissions(access_token)
