@@ -23,13 +23,13 @@ class BaseClient:
 
     @staticmethod
     def _raise_if_errcode(data: Dict[str, Any], ctx: str = "", required_keys: Optional[List[str]] = None):
-                """统一 errcode 判定与必要字段校验。
+        """统一 errcode 判定与必要字段校验。
 
-                - 如果返回为非 dict，则直接抛出异常。
-                - 若存在 `errcode` 字段并且不为 0，则抛出 `WeComApiError`。
-                - 当未提供 `errcode` 时，可通过 `required_keys` 指定必须存在的字段，
-                    若缺失则抛出异常；否则认为成功并打印警告。
-                """
+        - 如果返回为非 dict，则直接抛出异常。
+        - 若存在 `errcode` 字段并且不为 0，则抛出 `WeComApiError`。
+        - 当未提供 `errcode` 时，可通过 `required_keys` 指定必须存在的字段，
+          若缺失则抛出异常；否则认为成功并打印警告。
+        """
         if not isinstance(data, dict):
             raise WeComApiError(f"Invalid response format for {ctx}: {data}")
         if "errcode" in data:

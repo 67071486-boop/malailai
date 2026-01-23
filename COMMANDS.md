@@ -1,3 +1,4 @@
+git clone git@github.com:67071486-boop/wecom-development.git
 
 git commit -m "描述本次改动"
 
