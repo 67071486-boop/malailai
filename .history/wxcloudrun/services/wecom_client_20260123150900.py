@@ -18,6 +18,8 @@ from wxcloudrun.services.wecom import (
     fetch_corp_token,
     ContactManager,
     get_contact_manager,
+    "ContactManager",
+    "get_contact_manager",
 )
 
 

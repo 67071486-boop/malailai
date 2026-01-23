@@ -119,23 +119,6 @@ class ContactManager(BaseClient):
         self._raise_if_errcode(data, "delete_department")
         return data
 
-    def simplelist_departments(self, access_token: str, id: Optional[int] = None) -> Dict[str, Any]:
-        """获取部门ID列表（简要）。
-
-        GET https://qyapi.weixin.qq.com/cgi-bin/department/simplelist?access_token=ACCESS_TOKEN&id=ID
-
-        返回字段示例：{"errcode":0, "errmsg":"ok", "department_id":[{"id":2,"parentid":1,"order":10}, ...]}
-        """
-        if not access_token:
-            raise WeComApiError("missing access_token")
-        url = "https://qyapi.weixin.qq.com/cgi-bin/department/simplelist"
-        params = {"access_token": access_token}
-        if id is not None:
-            params["id"] = id
-        data = self._do_get(url, params=params)
-        self._raise_if_errcode(data, "simplelist_departments")
-        return data
-
 
 # 便捷工厂
 def get_contact_manager(session: Optional[Any] = None) -> ContactManager:
