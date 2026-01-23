@@ -12,6 +12,10 @@ from wxcloudrun.services.wecom import (
     fetch_suite_access_token,
     fetch_corp_access_token,
     CorpClient,
+    fetch_auth_info,
+    fetch_pre_auth_code,
+    fetch_app_permissions,
+    fetch_corp_token,
 )
 
 
@@ -30,4 +34,6 @@ __all__ = [
     "fetch_corp_access_token",
     "fetch_auth_info",
     "fetch_pre_auth_code",
+    "fetch_app_permissions",
+    "fetch_corp_token",
 ]
