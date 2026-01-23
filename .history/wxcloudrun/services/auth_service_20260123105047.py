@@ -25,26 +25,26 @@ def get_permanent_code(auth_code: str) -> Optional[Tuple[str, dict]]:
     auth_corp_info = result.get("auth_corp_info", {})
     corp_id = auth_corp_info.get("corpid")
 
-    corp_auth = query_corp_auth(corp_id)
-    if corp_auth:
-        corp_auth["permanent_code"] = permanent_code
-        corp_auth["auth_corp_info"] = json.dumps(auth_corp_info)
-        update_corp_auth(corp_auth)
-    else:
-        corp_auth = new_corp_auth(
-            corp_id=corp_id,
-            permanent_code=permanent_code,
-            auth_corp_info=json.dumps(auth_corp_info),
-        )
-        insert_corp_auth(corp_auth)
+        corp_auth = query_corp_auth(corp_id)
+        if corp_auth:
+            corp_auth["permanent_code"] = permanent_code
+            corp_auth["auth_corp_info"] = json.dumps(auth_corp_info)
+            update_corp_auth(corp_auth)
+        else:
+            corp_auth = new_corp_auth(
+                corp_id=corp_id,
+                permanent_code=permanent_code,
+                auth_corp_info=json.dumps(auth_corp_info),
+            )
+            insert_corp_auth(corp_auth)
 
-    # Print success, mask most of permanent_code (keep last 6 chars)
-    try:
-        masked = f"****{permanent_code[-6:]}" if permanent_code else "(none)"
-    except Exception:
-        masked = "(masked)"
-    print(f"[auth_service] 已获取并保存永久授权码 corp_id={corp_id} code={masked}", flush=True)
-    return permanent_code, auth_corp_info
+        # Print success, mask most of permanent_code (keep last 6 chars)
+        try:
+            masked = f"****{permanent_code[-6:]}" if permanent_code else "(none)"
+        except Exception:
+            masked = "(masked)"
+        print(f"[auth_service] 已获取并保存永久授权码 corp_id={corp_id} code={masked}", flush=True)
+        return permanent_code, auth_corp_info
     
 
 
