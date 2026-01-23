@@ -108,6 +108,7 @@ def handle_command_callback(request):
         timestamp = request.args.get("timestamp")
         nonce = request.args.get("nonce")
         post_data = request.data.decode("utf-8")
+        print("[callback_service] 指令回调收到 POST，args=", dict(request.args), "body_snippet=", post_data[:300], flush=True)
 
         m = re.search(r"<ToUserName><!\[CDATA\[(.*?)\]\]></ToUserName>", post_data)
         receive_id = m.group(1) if m else WXWORK_SUITE_ID

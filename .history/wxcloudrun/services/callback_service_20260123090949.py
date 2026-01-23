@@ -61,11 +61,10 @@ def _decrypt_body(body: str, msg_signature: str, timestamp: str, nonce: str, rec
 
 def handle_data_callback(request):
     if request.method == "GET":
-        print("[callback_service] 数据回调收到 GET", flush=True)
+        print("GET数据回调入口", flush=True)
         return _verify_url(request.args, WXWORK_CORP_ID)
 
     if request.method == "POST":
-        print("[callback_service] 数据回调收到 POST", flush=True)
         valid, error = _validate_params(request.args, ["msg_signature", "timestamp", "nonce"])
         if not valid:
             return jsonify({"code": 1, "message": error}), 400
@@ -74,6 +73,7 @@ def handle_data_callback(request):
         timestamp = request.args.get("timestamp")
         nonce = request.args.get("nonce")
         post_data = request.data.decode("utf-8")
+        print("[callback_service] 数据回调收到 POST，args=", dict(request.args), "body_snippet=", post_data[:300], flush=True)
 
         m = re.search(r"<ToUserName><!\[CDATA\[(.*?)\]\]></ToUserName>", post_data)
         receive_id = m.group(1) if m else WXWORK_SUITE_ID
@@ -95,11 +95,9 @@ def handle_data_callback(request):
 
 def handle_command_callback(request):
     if request.method == "GET":
-        print("[callback_service] 指令回调收到 GET", flush=True)
         return _verify_url(request.args, WXWORK_CORP_ID)
 
     if request.method == "POST":
-        print("[callback_service] 指令回调收到 POST", flush=True)
         valid, error = _validate_params(request.args, ["msg_signature", "timestamp", "nonce"])
         if not valid:
             return jsonify({"code": 1, "message": error}), 400
@@ -108,6 +106,7 @@ def handle_command_callback(request):
         timestamp = request.args.get("timestamp")
         nonce = request.args.get("nonce")
         post_data = request.data.decode("utf-8")
+        print("[callback_service] 指令回调收到 POST，args=", dict(request.args), "body_snippet=", post_data[:300], flush=True)
 
         m = re.search(r"<ToUserName><!\[CDATA\[(.*?)\]\]></ToUserName>", post_data)
         receive_id = m.group(1) if m else WXWORK_SUITE_ID
