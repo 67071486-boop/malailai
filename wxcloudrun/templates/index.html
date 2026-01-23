@@ -264,10 +264,10 @@
       </div>
       <div style="margin-top: 12px; display:flex; gap:8px; flex-direction:column; align-items:center;">
         <div style="display:flex; gap:8px; align-items:center;">
-          <input id="input-access-token" class="form-control" placeholder="access_token (测试用)" style="width:320px;" />
+          <input id="input-dept-id" class="form-control" placeholder="部门 id（可选）" style="width:320px;" />
         </div>
         <div style="display:flex; gap:8px; align-items:center;">
-          <input id="input-dept-id" class="form-control" placeholder="部门 id（可选）" style="width:320px;" />
+          <input id="input-corp-id" class="form-control" placeholder="corp_id（可选，未填则使用第一个已授权企业）" style="width:320px;" />
         </div>
         <button id="btn-dept-simplelist" class="btn btn-secondary">测试：获取子部门ID列表</button>
         <pre id="dept-simplelist-result" style="max-width: 520px; white-space: pre-wrap; word-break: break-word; text-align:left; margin-top:8px; background:#f8f9fa; padding:8px; border-radius:4px;"></pre>
@@ -364,12 +364,13 @@
       });
     });
     $("#btn-dept-simplelist").on('click', function(){
-      var token = $("#input-access-token").val();
       var id = $("#input-dept-id").val();
+      var corp_id = $("#input-corp-id").val();
       $(this).prop('disabled', true).text('请求中...');
       $('#dept-simplelist-result').text('');
-      var payload = { access_token: token };
+      var payload = {};
       if(id) payload.id = isNaN(Number(id)) ? id : Number(id);
+      if(corp_id) payload.corp_id = corp_id;
       $.ajax('/api/department/simplelist', {
         method: 'POST',
         contentType: 'application/json; charset=utf-8',
