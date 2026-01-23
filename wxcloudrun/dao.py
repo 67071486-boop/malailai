@@ -71,6 +71,18 @@ def query_corp_auth(corp_id):
         return None
 
 
+def query_all_corp_auths():
+    """
+    查询所有 corp_auth 文档（返回列表）。
+    注意：在数据量很大时应改为分页或使用游标。
+    """
+    try:
+        return list(db.corp_auth.find({}))
+    except PyMongoError as e:
+        logger.info(f"query_all_corp_auths errorMsg= {e}")
+        return []
+
+
 def insert_corp_auth(corp_auth):
     """
     插入一个CorpAuth实体

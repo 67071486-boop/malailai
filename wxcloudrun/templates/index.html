@@ -258,6 +258,10 @@
           <small class="card-text" style="display: flex; justify-content: center; margin-top: 8px">扫码加入微信云托管用户群</small>
         </div>
       </div>
+      <div style="margin-top: 24px; display:flex; gap:8px; flex-direction:column; align-items:center;">
+        <button id="btn-update-corp-auths" class="btn btn-primary">更新 corp_auth 授权信息</button>
+        <div id="update-result" style="max-width: 520px; word-break:break-word; text-align:center; margin-top:8px;"></div>
+      </div>
       <div>
         <div class="hr">
           <span class="hr-text">快速入门</span>
@@ -329,6 +333,27 @@
       }
     });
   }
+
+  $(function(){
+    $("#btn-update-corp-auths").on('click', function(){
+      $(this).prop('disabled', true).text('更新中...');
+      $('#update-result').text('');
+      $.ajax('/api/update_corp_auths', {
+        method: 'POST',
+        dataType: 'json'
+      }).done(function(res){
+        if(res && res.data){
+          $('#update-result').text(JSON.stringify(res.data, null, 2));
+        } else {
+          $('#update-result').text('未知响应');
+        }
+      }).fail(function(xhr){
+        $('#update-result').text('请求失败: ' + (xhr.responseText || xhr.statusText));
+      }).always(function(){
+        $('#btn-update-corp-auths').prop('disabled', false).text('更新 corp_auth 授权信息');
+      });
+    });
+  });
 </script>
 
 </html>

@@ -13,6 +13,10 @@ from wxcloudrun.response import (
     make_succ_response,
     make_err_response,
 )
+import json
+from datetime import datetime
+from wxcloudrun.dao import query_all_corp_auths, update_corp_auth
+from wxcloudrun.services.wecom_client import fetch_auth_info, WeComApiError
 
 
 @app.route("/")
@@ -72,3 +76,36 @@ def get_count():
         if counter is None
         else make_succ_response(counter["count"])
     )
+
+
+@app.route("/api/update_corp_auths", methods=["POST"])
+def update_corp_auths():
+    """批量更新 `corp_auth` 集合中的授权信息：
+
+    - 遍历所有 corp_auth 文档，使用 `permanent_code` 调用 `fetch_auth_info` 拉取 v2 授权信息
+    - 将 v2 响应（JSON 字符串）写回 `auth_corp_info`，并更新 `updated_at`
+    返回：成功/失败统计与错误列表
+    """
+    results = {"updated": 0, "failed": 0, "errors": []}
+    docs = query_all_corp_auths()
+    for doc in docs:
+        try:
+            corp_id = doc.get("corp_id")
+            permanent_code = doc.get("permanent_code")
+            if not corp_id or not permanent_code:
+                results["failed"] += 1
+                results["errors"].append({"corp_id": corp_id, "error": "missing corp_id or permanent_code"})
+                continue
+            v2 = fetch_auth_info(corp_id, permanent_code)
+            # 保存为 JSON 字符串（与现有字段格式兼容）
+            doc["auth_corp_info"] = json.dumps(v2)
+            doc["updated_at"] = datetime.utcnow()
+            update_corp_auth(doc)
+            results["updated"] += 1
+        except WeComApiError as e:
+            results["failed"] += 1
+            results["errors"].append({"corp_id": doc.get("corp_id"), "error": str(e)})
+        except Exception as e:
+            results["failed"] += 1
+            results["errors"].append({"corp_id": doc.get("corp_id"), "error": str(e)})
+    return make_succ_response(results)
