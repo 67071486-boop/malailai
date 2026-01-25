@@ -73,12 +73,12 @@ def _decrypt_body(body: str, msg_signature: str, timestamp: str, nonce: str, rec
         return None
 
 
-def _dispatch_biz(evt_type: str, payload: dict, *, receive_id: str, source: str):
+def _dispatch_biz(info_type: str, payload: dict, *, receive_id: str, source: str):
     """将解密后的回调交给业务分发器，失败不影响回包。"""
     try:
-        biz_dispatcher.dispatch(evt_type, payload, receive_id=receive_id, source=source)
+        biz_dispatcher.dispatch(info_type, payload, receive_id=receive_id, source=source)
     except Exception as exc:
-        print("[callback_service] biz dispatch error", evt_type, "error=", exc, flush=True)
+        print("[callback_service] biz dispatch error", info_type, "error=", exc, flush=True)
 
 
 def _extract_event_type(decrypted_json: dict):
@@ -115,9 +115,6 @@ def handle_data_callback(request: Request) -> ResponseReturnValue:
             return jsonify({"code": 1, "message": "DecryptMsg fail"}), 400
 
         evt_type = _extract_event_type(decrypted_json)
-        if not evt_type:
-            print("[callback_service] 数据回调缺少事件类型，跳过分发 receive_id=", receive_id, flush=True)
-            return "success", 200
         print("[callback_service] 数据回调解密成功 receive_id=", receive_id, "event=", evt_type, flush=True)
         _dispatch_biz(evt_type, decrypted_json, receive_id=receive_id, source="data")
         return "success", 200
@@ -153,9 +150,6 @@ def handle_command_callback(request: Request) -> ResponseReturnValue:
             return jsonify({"code": 1, "message": "DecryptMsg fail"}), 400
 
         evt_type = _extract_event_type(decrypted_json)
-        if not evt_type:
-            print("[callback_service] 指令回调缺少 InfoType，跳过分发 receive_id=", receive_id, flush=True)
-            return "success", 200
         print("[callback_service] 指令回调 InfoType=", evt_type, "receive_id=", receive_id, flush=True)
         if evt_type == "suite_ticket":
             suite_ticket = decrypted_json.get("xml", {}).get("SuiteTicket")

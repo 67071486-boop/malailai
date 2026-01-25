@@ -73,12 +73,12 @@ def _decrypt_body(body: str, msg_signature: str, timestamp: str, nonce: str, rec
         return None
 
 
-def _dispatch_biz(evt_type: str, payload: dict, *, receive_id: str, source: str):
+def _dispatch_biz(info_type: str, payload: dict, *, receive_id: str, source: str):
     """将解密后的回调交给业务分发器，失败不影响回包。"""
     try:
-        biz_dispatcher.dispatch(evt_type, payload, receive_id=receive_id, source=source)
+        biz_dispatcher.dispatch(info_type, payload, receive_id=receive_id, source=source)
     except Exception as exc:
-        print("[callback_service] biz dispatch error", evt_type, "error=", exc, flush=True)
+        print("[callback_service] biz dispatch error", info_type, "error=", exc, flush=True)
 
 
 def _extract_event_type(decrypted_json: dict):
@@ -114,12 +114,9 @@ def handle_data_callback(request: Request) -> ResponseReturnValue:
             )
             return jsonify({"code": 1, "message": "DecryptMsg fail"}), 400
 
-        evt_type = _extract_event_type(decrypted_json)
-        if not evt_type:
-            print("[callback_service] 数据回调缺少事件类型，跳过分发 receive_id=", receive_id, flush=True)
-            return "success", 200
-        print("[callback_service] 数据回调解密成功 receive_id=", receive_id, "event=", evt_type, flush=True)
-        _dispatch_biz(evt_type, decrypted_json, receive_id=receive_id, source="data")
+        info_type = _extract_event_type(decrypted_json)
+        print("[callback_service] 数据回调解密成功 receive_id=", receive_id, "event=", info_type, flush=True)
+        _dispatch_biz(info_type, decrypted_json, receive_id=receive_id, source="data")
         return "success", 200
 
     return "Method Not Allowed", 405
@@ -152,12 +149,9 @@ def handle_command_callback(request: Request) -> ResponseReturnValue:
             )
             return jsonify({"code": 1, "message": "DecryptMsg fail"}), 400
 
-        evt_type = _extract_event_type(decrypted_json)
-        if not evt_type:
-            print("[callback_service] 指令回调缺少 InfoType，跳过分发 receive_id=", receive_id, flush=True)
-            return "success", 200
-        print("[callback_service] 指令回调 InfoType=", evt_type, "receive_id=", receive_id, flush=True)
-        if evt_type == "suite_ticket":
+        info_type = _extract_event_type(decrypted_json)
+        print("[callback_service] 指令回调 InfoType=", info_type, "receive_id=", receive_id, flush=True)
+        if info_type == "suite_ticket":
             suite_ticket = decrypted_json.get("xml", {}).get("SuiteTicket")
             if suite_ticket:
                 try:
@@ -169,7 +163,7 @@ def handle_command_callback(request: Request) -> ResponseReturnValue:
 
                     print("[callback_service] 处理 suite_ticket 出现异常", flush=True)
                     traceback.print_exc()
-        elif evt_type == "create_auth":
+        elif info_type == "create_auth":
             auth_code = decrypted_json.get("xml", {}).get("AuthCode")
             if auth_code:
                 try:
@@ -181,10 +175,10 @@ def handle_command_callback(request: Request) -> ResponseReturnValue:
                     print("[callback_service] 异步获取永久授权码启动异常 auth_code=", auth_code, flush=True)
                     traceback.print_exc()
                 else:
-                    _dispatch_biz(evt_type, decrypted_json, receive_id=receive_id, source="command")
+                    _dispatch_biz(info_type, decrypted_json, receive_id=receive_id, source="command")
         else:
             # 其他 InfoType 统一交由业务分发（如 change_external_chat 等）
-            _dispatch_biz(evt_type, decrypted_json, receive_id=receive_id, source="command")
+            _dispatch_biz(info_type, decrypted_json, receive_id=receive_id, source="command")
         # 可扩展更多 InfoType 分支
         return "success", 200
 

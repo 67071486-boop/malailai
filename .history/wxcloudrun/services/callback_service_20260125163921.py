@@ -73,12 +73,12 @@ def _decrypt_body(body: str, msg_signature: str, timestamp: str, nonce: str, rec
         return None
 
 
-def _dispatch_biz(evt_type: str, payload: dict, *, receive_id: str, source: str):
+def _dispatch_biz(info_type: str, payload: dict, *, receive_id: str, source: str):
     """将解密后的回调交给业务分发器，失败不影响回包。"""
     try:
-        biz_dispatcher.dispatch(evt_type, payload, receive_id=receive_id, source=source)
+        biz_dispatcher.dispatch(info_type, payload, receive_id=receive_id, source=source)
     except Exception as exc:
-        print("[callback_service] biz dispatch error", evt_type, "error=", exc, flush=True)
+        print("[callback_service] biz dispatch error", info_type, "error=", exc, flush=True)
 
 
 def _extract_event_type(decrypted_json: dict):
