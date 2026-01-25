@@ -264,9 +264,3 @@ def api_get_temp_media():
     if resp.headers.get("Accept-Ranges"):
         flask_resp.headers["Accept-Ranges"] = resp.headers["Accept-Ranges"]
     return flask_resp
-
-
-@app.route("/media/test", methods=["GET"])
-def media_test_page():
-    """简单的素材上传/下载测试页面。"""
-    return render_template("media_test.html")
