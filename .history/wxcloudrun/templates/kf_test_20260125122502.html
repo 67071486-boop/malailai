@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>微信客服接口测试</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; line-height: 1.5; }
+    .card { border: 1px solid #ddd; padding: 16px; border-radius: 8px; margin-bottom: 16px; max-width: 780px; }
+    .row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+    .row label { width: 160px; font-weight: 600; }
+    .row input, .row select { flex: 1; padding: 8px; box-sizing: border-box; }
+    button { padding: 10px 14px; margin-top: 8px; cursor: pointer; }
+    pre { background: #f7f7f7; padding: 12px; border-radius: 6px; overflow-x: auto; }
+    h2 { margin-top: 0; }
+  </style>
+</head>
+<body>
+  <h1>微信客服接口测试</h1>
+
+  <div class="card">
+    <h2>通用参数</h2>
+    <div class="row"><label>access_token</label><input id="token" placeholder="必填，客服相关 token"></div>
+  </div>
+
+  <div class="card">
+    <h2>添加客服账号</h2>
+    <div class="row"><label>name</label><input id="add_name" placeholder="不超过16字符"></div>
+    <div class="row"><label>media_id</label><input id="add_media" placeholder="头像临时素材 media_id"></div>
+    <button onclick="addAccount()">添加</button>
+    <pre id="add_res">等待操作...</pre>
+  </div>
+
+  <div class="card">
+    <h2>删除客服账号</h2>
+    <div class="row"><label>open_kfid</label><input id="del_kfid" placeholder="要删除的 open_kfid"></div>
+    <button onclick="delAccount()">删除</button>
+    <pre id="del_res">等待操作...</pre>
+  </div>
+
+  <div class="card">
+    <h2>修改客服账号</h2>
+    <div class="row"><label>open_kfid</label><input id="upd_kfid" placeholder="要修改的 open_kfid"></div>
+    <div class="row"><label>name</label><input id="upd_name" placeholder="新名称，可选"></div>
+    <div class="row"><label>media_id</label><input id="upd_media" placeholder="新头像 media_id，可选"></div>
+    <button onclick="updAccount()">修改</button>
+    <pre id="upd_res">等待操作...</pre>
+  </div>
+
+  <div class="card">
+    <h2>获取客服账号列表</h2>
+    <div class="row"><label>offset</label><input id="list_offset" value="0"></div>
+    <div class="row"><label>limit (1-100)</label><input id="list_limit" value="20"></div>
+    <button onclick="listAccounts()">获取列表</button>
+    <pre id="list_res">等待操作...</pre>
+  </div>
+
+  <div class="card">
+    <h2>获取客服账号链接</h2>
+    <div class="row"><label>open_kfid</label><input id="link_kfid" placeholder="open_kfid"></div>
+    <div class="row"><label>scene</label><input id="link_scene" placeholder="可选 scene"></div>
+    <button onclick="getLink()">获取链接</button>
+    <pre id="link_res">等待操作...</pre>
+  </div>
+
+  <div class="card">
+    <h2>添加接待人员</h2>
+    <div class="row"><label>open_kfid</label><input id="staff_add_kfid" placeholder="open_kfid"></div>
+    <div class="row"><label>userid_list (逗号分隔)</label><input id="staff_add_users" placeholder="zhangsan,lisi"></div>
+    <div class="row"><label>department_id_list (逗号分隔)</label><input id="staff_add_depts" placeholder="2,4"></div>
+    <button onclick="addStaffs()">添加接待人员</button>
+    <pre id="staff_add_res">等待操作...</pre>
+  </div>
+
+  <div class="card">
+    <h2>删除接待人员</h2>
+    <div class="row"><label>open_kfid</label><input id="staff_del_kfid" placeholder="open_kfid"></div>
+    <div class="row"><label>userid_list (逗号分隔)</label><input id="staff_del_users" placeholder="zhangsan,lisi"></div>
+    <div class="row"><label>department_id_list (逗号分隔)</label><input id="staff_del_depts" placeholder="2,4"></div>
+    <button onclick="delStaffs()">删除接待人员</button>
+    <pre id="staff_del_res">等待操作...</pre>
+  </div>
+
+  <div class="card">
+    <h2>获取接待人员列表</h2>
+    <div class="row"><label>open_kfid</label><input id="staff_list_kfid" placeholder="open_kfid"></div>
+    <button onclick="listStaffs()">获取列表</button>
+    <pre id="staff_list_res">等待操作...</pre>
+  </div>
+
+<script>
+async function postJson(url, payload, resEl){
+  try {
+    resEl.textContent = '请求中...';
+    const resp = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+    const data = await resp.json();
+    resEl.textContent = JSON.stringify(data, null, 2);
+  } catch(e){
+    resEl.textContent = '请求失败: ' + e;
+  }
+}
+
+function parseList(str){
+  if(!str) return undefined;
+  return str.split(',').map(s=>s.trim()).filter(Boolean);
+}
+
+function getToken(){ return document.getElementById('token').value.trim(); }
+
+function addAccount(){
+  const payload = {
+    access_token: getToken(),
+    name: document.getElementById('add_name').value.trim(),
+    media_id: document.getElementById('add_media').value.trim(),
+  };
+  postJson('/api/kf/account/add', payload, document.getElementById('add_res'));
+}
+
+function delAccount(){
+  const payload = {
+    access_token: getToken(),
+    open_kfid: document.getElementById('del_kfid').value.trim(),
+  };
+  postJson('/api/kf/account/del', payload, document.getElementById('del_res'));
+}
+
+function updAccount(){
+  const payload = {
+    access_token: getToken(),
+    open_kfid: document.getElementById('upd_kfid').value.trim(),
+    name: document.getElementById('upd_name').value.trim() || undefined,
+    media_id: document.getElementById('upd_media').value.trim() || undefined,
+  };
+  postJson('/api/kf/account/update', payload, document.getElementById('upd_res'));
+}
+
+function listAccounts(){
+  const payload = {
+    access_token: getToken(),
+    offset: Number(document.getElementById('list_offset').value || 0),
+    limit: Number(document.getElementById('list_limit').value || 20),
+  };
+  postJson('/api/kf/account/list', payload, document.getElementById('list_res'));
+}
+
+function getLink(){
+  const payload = {
+    access_token: getToken(),
+    open_kfid: document.getElementById('link_kfid').value.trim(),
+    scene: document.getElementById('link_scene').value.trim() || undefined,
+  };
+  postJson('/api/kf/account/contact_way', payload, document.getElementById('link_res'));
+}
+
+function addStaffs(){
+  const payload = {
+    access_token: getToken(),
+    open_kfid: document.getElementById('staff_add_kfid').value.trim(),
+    userid_list: parseList(document.getElementById('staff_add_users').value),
+    department_id_list: parseList(document.getElementById('staff_add_depts').value)?.map(Number),
+  };
+  postJson('/api/kf/servicer/add', payload, document.getElementById('staff_add_res'));
+}
+
+function delStaffs(){
+  const payload = {
+    access_token: getToken(),
+    open_kfid: document.getElementById('staff_del_kfid').value.trim(),
+    userid_list: parseList(document.getElementById('staff_del_users').value),
+    department_id_list: parseList(document.getElementById('staff_del_depts').value)?.map(Number),
+  };
+  postJson('/api/kf/servicer/del', payload, document.getElementById('staff_del_res'));
+}
+
+function listStaffs(){
+  const payload = {
+    access_token: getToken(),
+    open_kfid: document.getElementById('staff_list_kfid').value.trim(),
+  };
+  postJson('/api/kf/servicer/list', payload, document.getElementById('staff_list_res'));
+}
+</script>
+</body>
+</html>

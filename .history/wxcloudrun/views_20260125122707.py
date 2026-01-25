@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from flask import render_template, request, Response
 from run import app
 from wxcloudrun.dao import (
@@ -42,7 +42,7 @@ def count():
     """
     print("[views] /api/count POST请求进来", flush=True)
     # 获取请求体参数
-    params = request.get_json(silent=True) or {}
+    params = request.get_json()
 
     # 检查action参数
     if "action" not in params:
@@ -59,7 +59,7 @@ def count():
             insert_counter(counter)
         else:
             counter["count"] += 1
-            counter["updated_at"] = datetime.now(timezone.utc)
+            counter["updated_at"] = datetime.utcnow()
             update_counterbyid(counter)
         return make_succ_response(counter["count"])
 
@@ -107,7 +107,7 @@ def update_corp_auths():
             v2 = fetch_auth_info(corp_id, permanent_code)
             # 保存为 JSON 字符串（与现有字段格式兼容）
             doc["auth_corp_info"] = json.dumps(v2)
-            doc["updated_at"] = datetime.now(timezone.utc)
+            doc["updated_at"] = datetime.utcnow()
             update_corp_auth(doc)
             results["updated"] += 1
         except WeComApiError as e:
@@ -191,224 +191,6 @@ def _resolve_access_token(params):
     if not permanent_code or not corp_id:
         return None
     return token_service.get_corp_access_token(corp_id, permanent_code)
-
-
-def _as_list(value, cast=None):
-    """将字符串(逗号分隔)/列表标准化为列表；可选类型转换。"""
-    if value is None:
-        return None
-    if isinstance(value, str):
-        items = [v.strip() for v in value.split(",") if v.strip()]
-    elif isinstance(value, list):
-        items = [v for v in value if v is not None]
-    else:
-        return None
-    if cast:
-        converted = []
-        for v in items:
-            try:
-                converted.append(cast(v))
-            except Exception:
-                continue
-        return converted or None
-    return items or None
-
-
-def _normalize_int_list(value):
-    """将逗号或数组形式的值转换为 int 列表，若无法解析则返回 None。"""
-    raw_values = _as_list(value)
-    if not raw_values:
-        return None
-    normalized = []
-    for item in raw_values:
-        try:
-            normalized.append(int(item))
-        except (TypeError, ValueError):
-            continue
-    return normalized or None
-
-
-def _require_str_param(params, key):
-    """确保指定的请求参数存在并为非空字符串。"""
-    value = params.get(key)
-    if value is None:
-        raise ValueError(f"{key} is required")
-    if not isinstance(value, str):
-        raise ValueError(f"{key} must be a string")
-    stripped = value.strip()
-    if not stripped:
-        raise ValueError(f"{key} cannot be empty")
-    return stripped
-
-
-@app.route("/api/kf/account/add", methods=["POST"])
-def api_kf_account_add():
-    params = request.get_json() or {}
-    access_token = _resolve_access_token(params)
-    if not access_token:
-        return make_err_response("missing access_token and no corp_auth fallback")
-    try:
-        name = _require_str_param(params, "name")
-        media_id = _require_str_param(params, "media_id")
-        data = kf_account_api.add_account(access_token, name, media_id)
-        return make_succ_response(data)
-    except ValueError as exc:
-        return make_err_response(str(exc))
-    except WeComApiError as e:
-        return make_err_response(str(e))
-    except Exception as e:
-        return make_err_response(str(e))
-
-
-@app.route("/api/kf/account/del", methods=["POST"])
-def api_kf_account_del():
-    params = request.get_json() or {}
-    access_token = _resolve_access_token(params)
-    if not access_token:
-        return make_err_response("missing access_token and no corp_auth fallback")
-    try:
-        open_kfid = _require_str_param(params, "open_kfid")
-        data = kf_account_api.delete_account(access_token, open_kfid)
-        return make_succ_response(data)
-    except ValueError as exc:
-        return make_err_response(str(exc))
-    except WeComApiError as e:
-        return make_err_response(str(e))
-    except Exception as e:
-        return make_err_response(str(e))
-
-
-@app.route("/api/kf/account/update", methods=["POST"])
-def api_kf_account_update():
-    params = request.get_json() or {}
-    access_token = _resolve_access_token(params)
-    if not access_token:
-        return make_err_response("missing access_token and no corp_auth fallback")
-    try:
-        open_kfid = _require_str_param(params, "open_kfid")
-        data = kf_account_api.update_account(
-            access_token,
-            open_kfid,
-            name=params.get("name"),
-            media_id=params.get("media_id"),
-        )
-        return make_succ_response(data)
-    except ValueError as exc:
-        return make_err_response(str(exc))
-    except WeComApiError as e:
-        return make_err_response(str(e))
-    except Exception as e:
-        return make_err_response(str(e))
-
-
-@app.route("/api/kf/account/list", methods=["POST"])
-def api_kf_account_list():
-    params = request.get_json() or {}
-    access_token = _resolve_access_token(params)
-    if not access_token:
-        return make_err_response("missing access_token and no corp_auth fallback")
-    try:
-        offset = int(params.get("offset", 0) or 0)
-        limit = int(params.get("limit", 20) or 20)
-    except Exception:
-        return make_err_response("offset/limit must be numbers")
-    try:
-        data = kf_account_api.list_accounts(access_token, offset=offset, limit=limit)
-        return make_succ_response(data)
-    except WeComApiError as e:
-        return make_err_response(str(e))
-    except Exception as e:
-        return make_err_response(str(e))
-
-
-@app.route("/api/kf/account/contact_way", methods=["POST"])
-def api_kf_account_contact_way():
-    params = request.get_json() or {}
-    access_token = _resolve_access_token(params)
-    if not access_token:
-        return make_err_response("missing access_token and no corp_auth fallback")
-    try:
-        open_kfid = _require_str_param(params, "open_kfid")
-        data = kf_account_api.get_contact_way(
-            access_token,
-            open_kfid,
-            scene=params.get("scene"),
-        )
-        return make_succ_response(data)
-    except ValueError as exc:
-        return make_err_response(str(exc))
-    except WeComApiError as e:
-        return make_err_response(str(e))
-    except Exception as e:
-        return make_err_response(str(e))
-
-
-@app.route("/api/kf/servicer/list", methods=["POST"])
-def api_kf_servicer_list():
-    params = request.get_json() or {}
-    access_token = _resolve_access_token(params)
-    if not access_token:
-        return make_err_response("missing access_token and no corp_auth fallback")
-    try:
-        open_kfid = _require_str_param(params, "open_kfid")
-        data = kf_staff_api.list_staffs(access_token, open_kfid)
-        return make_succ_response(data)
-    except ValueError as exc:
-        return make_err_response(str(exc))
-    except WeComApiError as e:
-        return make_err_response(str(e))
-    except Exception as e:
-        return make_err_response(str(e))
-
-
-@app.route("/api/kf/servicer/add", methods=["POST"])
-def api_kf_servicer_add():
-    params = request.get_json() or {}
-    access_token = _resolve_access_token(params)
-    if not access_token:
-        return make_err_response("missing access_token and no corp_auth fallback")
-    user_ids = _as_list(params.get("userid_list"))
-    try:
-        open_kfid = _require_str_param(params, "open_kfid")
-        dept_ids = _normalize_int_list(params.get("department_id_list"))
-        data = kf_staff_api.add_staffs(
-            access_token,
-            open_kfid,
-            user_ids=user_ids,
-            department_ids=dept_ids,
-        )
-        return make_succ_response(data)
-    except ValueError as exc:
-        return make_err_response(str(exc))
-    except WeComApiError as e:
-        return make_err_response(str(e))
-    except Exception as e:
-        return make_err_response(str(e))
-
-
-@app.route("/api/kf/servicer/del", methods=["POST"])
-def api_kf_servicer_del():
-    params = request.get_json() or {}
-    access_token = _resolve_access_token(params)
-    if not access_token:
-        return make_err_response("missing access_token and no corp_auth fallback")
-    user_ids = _as_list(params.get("userid_list"))
-    try:
-        open_kfid = _require_str_param(params, "open_kfid")
-        dept_ids = _normalize_int_list(params.get("department_id_list"))
-        data = kf_staff_api.del_staffs(
-            access_token,
-            open_kfid,
-            user_ids=user_ids,
-            department_ids=dept_ids,
-        )
-        return make_succ_response(data)
-    except ValueError as exc:
-        return make_err_response(str(exc))
-    except WeComApiError as e:
-        return make_err_response(str(e))
-    except Exception as e:
-        return make_err_response(str(e))
 
 
 @app.route("/api/media/upload_temp", methods=["POST"])

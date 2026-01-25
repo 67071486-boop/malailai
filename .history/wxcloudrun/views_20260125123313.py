@@ -228,19 +228,6 @@ def _normalize_int_list(value):
     return normalized or None
 
 
-def _require_str_param(params, key):
-    """确保指定的请求参数存在并为非空字符串。"""
-    value = params.get(key)
-    if value is None:
-        raise ValueError(f"{key} is required")
-    if not isinstance(value, str):
-        raise ValueError(f"{key} must be a string")
-    stripped = value.strip()
-    if not stripped:
-        raise ValueError(f"{key} cannot be empty")
-    return stripped
-
-
 @app.route("/api/kf/account/add", methods=["POST"])
 def api_kf_account_add():
     params = request.get_json() or {}
