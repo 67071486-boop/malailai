@@ -37,15 +37,8 @@ class ContactEventHandler(BizHandler):
             print("[biz.contact] access_token unavailable for", corp_id, flush=True)
             return
 
-        update_detail = xml.get("UpdateDetail")
-
-        if change_type == "create":
-            self._sync_group_chat(access_token, chat_id, corp_id, update_detail=update_detail)
-        elif change_type == "update":
-            if update_detail == "change_name":
-                self._sync_group_chat(access_token, chat_id, corp_id, update_detail=update_detail)
-            else:
-                print("[biz.contact] update ignored, unsupported detail", update_detail, chat_id, flush=True)
+        if change_type in {"create", "update"}:
+            self._sync_group_chat(access_token, chat_id, corp_id, update_detail=xml.get("UpdateDetail"))
         elif change_type == "dismiss":
             self._handle_chat_dismiss(chat_id)
         else:
