@@ -25,7 +25,7 @@ def _validate_params(params, required):
     return True, ""
 
 
-def _verify_url(args, receive_id) -> ResponseReturnValue:
+def _verify_url(args, receive_id):
     wxcpt = WXBizMsgCrypt(WXWORK_TOKEN, WXWORK_ENCODING_AES_KEY, receive_id)
     valid, error = _validate_params(args, ["msg_signature", "timestamp", "nonce", "echostr"])
     if not valid:
@@ -38,7 +38,7 @@ def _verify_url(args, receive_id) -> ResponseReturnValue:
     ret, sEchoStr = wxcpt.VerifyURL(msg_signature, timestamp, nonce, echostr)
     print("[callback_service] VerifyURL 返回:", ret, "sEchoStr=", sEchoStr, "receive_id=", receive_id, "args=", dict(args), flush=True)
     if ret == 0:
-        return (sEchoStr or ""), 200
+        return sEchoStr, 200
     return "VerifyURL failed", 400
 
 
@@ -80,9 +80,9 @@ def handle_data_callback(request: Request) -> ResponseReturnValue:
         if not valid:
             return jsonify({"code": 1, "message": error}), 400
 
-        msg_signature = request.args["msg_signature"]
-        timestamp = request.args["timestamp"]
-        nonce = request.args["nonce"]
+        msg_signature = request.args.get("msg_signature")
+        timestamp = request.args.get("timestamp")
+        nonce = request.args.get("nonce")
         post_data = request.data.decode("utf-8")
 
         m = re.search(r"<ToUserName><!\[CDATA\[(.*?)\]\]></ToUserName>", post_data)
@@ -116,9 +116,9 @@ def handle_command_callback(request: Request) -> ResponseReturnValue:
         if not valid:
             return jsonify({"code": 1, "message": error}), 400
 
-        msg_signature = request.args["msg_signature"]
-        timestamp = request.args["timestamp"]
-        nonce = request.args["nonce"]
+        msg_signature = request.args.get("msg_signature")
+        timestamp = request.args.get("timestamp")
+        nonce = request.args.get("nonce")
         post_data = request.data.decode("utf-8")
 
         m = re.search(r"<ToUserName><!\[CDATA\[(.*?)\]\]></ToUserName>", post_data)

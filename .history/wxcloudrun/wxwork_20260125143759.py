@@ -2,7 +2,6 @@ import os
 from urllib.parse import quote
 from wxcloudrun.services.wecom_client import get_suite_client, WeComApiError
 from flask import Blueprint, request, redirect, url_for, session
-from flask.typing import ResponseReturnValue
 from wxcloudrun.services.callback_service import handle_data_callback, handle_command_callback
 from wxcloudrun.services.token_service import WXWORK_SUITE_ID, get_suite_access_token
 from wxcloudrun.response import make_succ_response, make_err_response
@@ -14,14 +13,14 @@ _DEFAULT_REDIRECT_URI = os.getenv("WXWORK_OAUTH_REDIRECT")
 
 
 @wxwork_bp.route("/callback/data", methods=["GET", "POST"])
-def callback_data() -> ResponseReturnValue:
+def callback_data():
     """企业微信数据回调，解密和分发由 callback_service 处理。"""
     print("[数据回调入口] ", flush=True)
     return handle_data_callback(request)
 
 
 @wxwork_bp.route("/callback/command", methods=["GET", "POST"])
-def callback_command() -> ResponseReturnValue:
+def callback_command():
     """企业微信指令回调（suite_ticket、create_auth 等）。"""
     print("[指令回调入口] ", flush=True)
     return handle_command_callback(request)
