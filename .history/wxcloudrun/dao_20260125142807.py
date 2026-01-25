@@ -1,5 +1,4 @@
 import logging
-from datetime import datetime
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 import config
@@ -127,13 +126,7 @@ def mark_group_chat_dismissed(chat_id):
     try:
         db.group_chats.update_one(
             {"chat_id": chat_id},
-            {
-                "$set": {
-                    "status_text": "dismissed",
-                    "status_code": 3,
-                    "updated_at": datetime.utcnow(),
-                }
-            },
+            {"$set": {"status": "dismissed"}},
         )
     except PyMongoError as e:
         logger.info(f"mark_group_chat_dismissed errorMsg= {e}")

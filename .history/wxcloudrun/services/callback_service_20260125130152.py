@@ -45,7 +45,7 @@ def _decrypt_body(body: str, msg_signature: str, timestamp: str, nonce: str, rec
     wxcpt = WXBizMsgCrypt(WXWORK_TOKEN, WXWORK_ENCODING_AES_KEY, receive_id)
     try:
         ret, decrypted_xml = wxcpt.DecryptMsg(body, msg_signature, timestamp, nonce)
-        if ret != 0 or not isinstance(decrypted_xml, str):
+        if ret != 0:
             print(
                 "[callback_service] 解密失败 ret=", ret,
                 "msg_signature=", msg_signature,
