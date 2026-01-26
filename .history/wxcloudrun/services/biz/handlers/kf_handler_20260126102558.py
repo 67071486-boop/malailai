@@ -10,12 +10,7 @@ from datetime import datetime, timezone
 from typing import Dict, Optional, Tuple, Any
 
 from ..dispatcher import BizHandler
-from wxcloudrun.dao import (
-    query_corp_auth,
-    query_kf_cursor,
-    upsert_kf_cursor,
-    query_group_chat_by_name,
-)
+from wxcloudrun.dao import query_corp_auth, query_kf_cursor, upsert_kf_cursor
 from wxcloudrun.model import new_kf_cursor
 from wxcloudrun.services import token_service
 from wxcloudrun.services.wecom.kf.session_manager import KfSessionApi
@@ -35,8 +30,8 @@ class KfEventHandler(BizHandler):
 
     def handle(self, evt_type: Optional[str], payload: Dict, *, receive_id: Optional[str], source: str) -> None:
         xml = payload.get("xml", {}) if isinstance(payload, dict) else {}
-        open_kfid = xml.get("OpenKfId")
-        corp_id = xml.get("ToUserName") or receive_id
+        open_kfid = xml.get("OpenKfId") or xml.get("ToUserName")
+        corp_id = xml.get("AuthCorpId") or xml.get("ToUserName") or receive_id
         if not open_kfid:
             print("[biz.kf] missing OpenKfId", xml, flush=True)
             return
@@ -87,7 +82,7 @@ class KfEventHandler(BizHandler):
             return None
         return doc.get("cursor")
 
-    def _save_next_cursor(self, open_kfid: str, cursor: Optional[str], corp_id: Optional[str] = None) -> None:
+    def _save_next_cursor(self, open_kfid: str, cursor: Optional[str]) -> None:
         if not cursor:
             return
         doc = query_kf_cursor(open_kfid)
@@ -95,7 +90,7 @@ class KfEventHandler(BizHandler):
             doc["cursor"] = cursor
             doc["updated_at"] = datetime.now(timezone.utc)
         else:
-            doc = new_kf_cursor(open_kfid, cursor, corp_id=corp_id)
+            doc = new_kf_cursor(open_kfid, cursor)
         upsert_kf_cursor(doc)
 
     # === 消息拉取与处理 ===
@@ -108,12 +103,12 @@ class KfEventHandler(BizHandler):
 
             msg_list = resp.get("msg_list") or []
             for msg in msg_list:
-                self._handle_message(msg, access_token, corp_id)
+                self._handle_message(msg)
 
             # 更新游标，优先使用返回值；若无返回则保留原值。
             next_cursor = resp.get("next_cursor") or next_cursor
             if next_cursor is not None:
-                self._save_next_cursor(open_kfid, next_cursor, corp_id)
+                self._save_next_cursor(open_kfid, next_cursor)
 
             if not resp.get("has_more"):
                 break
@@ -128,10 +123,10 @@ class KfEventHandler(BizHandler):
             return None
 
     # === 单条消息处理 ===
-    def _handle_message(self, msg: Dict, access_token: str, corp_id: str) -> None:
+    def _handle_message(self, msg: Dict) -> None:
         msgtype, payload, raw = self._extract_message_payload(msg)
         if msgtype == "text":
-            self._handle_text(raw, payload, access_token, corp_id)
+            self._handle_text(raw, payload)
         elif msgtype == "event":
             self._handle_event(raw, payload)
         else:
@@ -150,77 +145,14 @@ class KfEventHandler(BizHandler):
             return msgtype, payload, msg
         return None, None, msg
 
-    def _handle_text(self, msg: Dict, payload: Optional[Dict[str, Any]], access_token: str, corp_id: str) -> None:
+    def _handle_text(self, msg: Dict, payload: Optional[Dict[str, Any]]) -> None:
+        # TODO: 在此处执行业务回复，如调用发送消息接口。
         content = None
         if payload and isinstance(payload, dict):
             content = payload.get("content")
         elif isinstance(msg.get("text"), dict):
             content = msg.get("text", {}).get("content")
         print("[biz.kf] text message", msg.get("msgid"), content, flush=True)
-
-        if not content or not isinstance(content, str):
-            return
-
-        order_no = content.strip()
-        is_order_no = order_no.isdigit() and len(order_no) >= 16
-
-        open_kfid = msg.get("open_kfid")
-        external_userid = msg.get("external_userid")
-        if not open_kfid or not external_userid:
-            print("[biz.kf] missing open_kfid/external_userid", msg.get("msgid"), flush=True)
-            return
-
-        if not is_order_no:
-            self._send_text_reply(
-                access_token,
-                open_kfid,
-                external_userid,
-                "查询失败，请输入有效的订单号",
-                msgid=msg.get("msgid"),
-                msgid_prefix="invalid_",
-            )
-            return
-
-        group_chat = query_group_chat_by_name(corp_id, order_no)
-        if not group_chat:
-            reply = f"未找到订单 {order_no} 对应的群信息"
-        else:
-            chat_name = group_chat.get("name") or order_no
-            chat_id = group_chat.get("chat_id")
-            status_text = group_chat.get("status_text") or "active"
-            reply = f"订单 {order_no} 对应群：{chat_name}（chat_id: {chat_id}，状态：{status_text}）"
-        self._send_text_reply(
-            access_token,
-            open_kfid,
-            external_userid,
-            reply,
-            msgid=msg.get("msgid"),
-            msgid_prefix="order_",
-        )
-
-    def _send_text_reply(
-        self,
-        access_token: str,
-        open_kfid: str,
-        external_userid: str,
-        content: str,
-        *,
-        msgid: Optional[str] = None,
-        msgid_prefix: str = "",
-    ) -> None:
-        payload = {
-            "touser": external_userid,
-            "open_kfid": open_kfid,
-            "msgtype": "text",
-            "text": {"content": content},
-        }
-        if msgid:
-            payload["msgid"] = f"{msgid_prefix}{msgid}"
-
-        try:
-            self._session_api.send_message(access_token, payload)
-        except Exception as exc:
-            print("[biz.kf] send_message failed", msgid, "err=", exc, flush=True)
 
     def _handle_event(self, msg: Dict, payload: Optional[Dict[str, Any]]) -> None:
         event_payload = payload if isinstance(payload, dict) else (msg.get("event") or {})

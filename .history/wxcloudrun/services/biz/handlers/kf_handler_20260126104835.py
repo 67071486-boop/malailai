@@ -162,23 +162,16 @@ class KfEventHandler(BizHandler):
             return
 
         order_no = content.strip()
-        is_order_no = order_no.isdigit() and len(order_no) >= 16
+        if not order_no.isdigit():
+            return
+
+        if len(order_no) < 16:
+            return
 
         open_kfid = msg.get("open_kfid")
         external_userid = msg.get("external_userid")
         if not open_kfid or not external_userid:
             print("[biz.kf] missing open_kfid/external_userid", msg.get("msgid"), flush=True)
-            return
-
-        if not is_order_no:
-            self._send_text_reply(
-                access_token,
-                open_kfid,
-                external_userid,
-                "查询失败，请输入有效的订单号",
-                msgid=msg.get("msgid"),
-                msgid_prefix="invalid_",
-            )
             return
 
         group_chat = query_group_chat_by_name(corp_id, order_no)
@@ -189,38 +182,21 @@ class KfEventHandler(BizHandler):
             chat_id = group_chat.get("chat_id")
             status_text = group_chat.get("status_text") or "active"
             reply = f"订单 {order_no} 对应群：{chat_name}（chat_id: {chat_id}，状态：{status_text}）"
-        self._send_text_reply(
-            access_token,
-            open_kfid,
-            external_userid,
-            reply,
-            msgid=msg.get("msgid"),
-            msgid_prefix="order_",
-        )
 
-    def _send_text_reply(
-        self,
-        access_token: str,
-        open_kfid: str,
-        external_userid: str,
-        content: str,
-        *,
-        msgid: Optional[str] = None,
-        msgid_prefix: str = "",
-    ) -> None:
         payload = {
             "touser": external_userid,
             "open_kfid": open_kfid,
             "msgtype": "text",
-            "text": {"content": content},
+            "text": {"content": reply},
         }
+        msgid = msg.get("msgid")
         if msgid:
-            payload["msgid"] = f"{msgid_prefix}{msgid}"
+            payload["msgid"] = f"order_{msgid}"
 
         try:
             self._session_api.send_message(access_token, payload)
         except Exception as exc:
-            print("[biz.kf] send_message failed", msgid, "err=", exc, flush=True)
+            print("[biz.kf] send_message failed", msg.get("msgid"), "err=", exc, flush=True)
 
     def _handle_event(self, msg: Dict, payload: Optional[Dict[str, Any]]) -> None:
         event_payload = payload if isinstance(payload, dict) else (msg.get("event") or {})

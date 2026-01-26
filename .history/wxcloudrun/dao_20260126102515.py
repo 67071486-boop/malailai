@@ -148,15 +148,6 @@ def query_group_chat(chat_id):
         return None
 
 
-def query_group_chat_by_name(corp_id, name):
-    """根据 corp_id + 群名称查询客户群记录。"""
-    try:
-        return db.group_chats.find_one({"corp_id": corp_id, "name": name})
-    except PyMongoError as e:
-        logger.info(f"query_group_chat_by_name errorMsg= {e}")
-        return None
-
-
 # ===== 微信客服（KF）消息游标存储 =====
 
 

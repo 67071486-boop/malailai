@@ -175,7 +175,7 @@ class KfEventHandler(BizHandler):
                 access_token,
                 open_kfid,
                 external_userid,
-                "查询失败，请输入有效的订单号",
+                "查询识别，请输入有效的订单号",
                 msgid=msg.get("msgid"),
                 msgid_prefix="invalid_",
             )
