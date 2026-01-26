@@ -134,7 +134,7 @@ class KfEventHandler(BizHandler):
         if msgtype == "text":
             self._handle_text(raw, payload, access_token, corp_id)
         elif msgtype == "event":
-            self._handle_event(raw, payload, access_token)
+            self._handle_event(raw, payload)
         else:
             print("[biz.kf] unsupported msgtype", msgtype, "msgid=", msg.get("msgid"), flush=True)
 
@@ -234,11 +234,11 @@ class KfEventHandler(BizHandler):
         except Exception as exc:
             print("[biz.kf] send_message failed", msgid, "err=", exc, flush=True)
 
-    def _handle_event(self, msg: Dict, payload: Optional[Dict[str, Any]], access_token: str) -> None:
+    def _handle_event(self, msg: Dict, payload: Optional[Dict[str, Any]]) -> None:
         event_payload = payload if isinstance(payload, dict) else (msg.get("event") or {})
         event = event_payload.get("event_type")
         if event == "enter_session":
-            self._on_enter_session(msg, event_payload, access_token)
+            self._on_enter_session(msg)
         elif event == "msg_send_fail":
             self._on_msg_send_fail(msg)
         elif event == "servicer_status_change":
@@ -255,22 +255,9 @@ class KfEventHandler(BizHandler):
             print("[biz.kf] unsupported event_type", event, "msgid=", msg.get("msgid"), flush=True)
 
     # === 各事件占位 ===
-    def _on_enter_session(self, msg: Dict, payload: Dict, access_token: str) -> None:
-        welcome_code = payload.get("welcome_code")
-        if not welcome_code:
-            print("[biz.kf] enter_session missing welcome_code", msg.get("msgid"), flush=True)
-            return
-
-        reply = "您好！我是群码自助机器人，请把订单号发给我获取二维码"
-        payload = {
-            "code": welcome_code,
-            "msgtype": "text",
-            "text": {"content": reply},
-        }
-        try:
-            self._session_api.send_msg_on_event(access_token, payload)
-        except Exception as exc:
-            print("[biz.kf] send_msg_on_event failed", msg.get("msgid"), "err=", exc, flush=True)
+    def _on_enter_session(self, msg: Dict) -> None:
+        # TODO: 进入会话欢迎语、埋点等。
+        print("[biz.kf] enter_session", msg.get("msgid"), flush=True)
 
     def _on_msg_send_fail(self, msg: Dict) -> None:
         # TODO: 发送失败补偿/告警。
