@@ -36,11 +36,14 @@ def sync_tick() -> None:
     kf_api = KfSessionApi()
     contact_way_api = ContactWayApi()
 
-    pending_list = query_pending_orders()
-    if not pending_list:
-        return None
+    batch_size = 200
+    while True:
+        pending_list = query_pending_orders(limit=batch_size)
+        if not pending_list:
+            break
 
-    for item in pending_list:
+        progressed = 0
+        for item in pending_list:
             corp_id = item.get("corp_id")
             order_no = item.get("order_no")
             external_userid = item.get("external_userid")
@@ -107,8 +110,12 @@ def sync_tick() -> None:
                 group_chat["updated_at"] = now
                 upsert_group_chat(group_chat)
                 mark_pending_done(corp_id, order_no, external_userid, result="sent")
+                progressed += 1
             except Exception:
                 continue
+
+        if progressed == 0:
+            break
 
 
 def sync_messages(corp_id: str, cursor: Optional[str] = None) -> None:

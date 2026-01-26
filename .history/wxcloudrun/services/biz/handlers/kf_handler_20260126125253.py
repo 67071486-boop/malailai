@@ -16,11 +16,8 @@ from wxcloudrun.dao import (
     query_kf_cursor,
     upsert_kf_cursor,
     query_group_chat_by_name,
-    upsert_pending_order,
-    mark_pending_done,
-    upsert_group_chat,
 )
-from wxcloudrun.model import new_kf_cursor, new_pending_order
+from wxcloudrun.model import new_kf_cursor
 from wxcloudrun.services import token_service
 from wxcloudrun.services.wecom.kf.session_manager import KfSessionApi
 from wxcloudrun.services.wecom.externalcontact.contact_way_manager import ContactWayApi
@@ -189,22 +186,8 @@ class KfEventHandler(BizHandler):
 
         group_chat = query_group_chat_by_name(corp_id, order_no)
         if not group_chat:
-            self._save_pending_order(corp_id, order_no, external_userid, open_kfid)
-            reply = "订单对应的群正在创建中，创建完成后会自动推送二维码，请稍候"
+            reply = f"未找到订单 {order_no} 对应的群信息"
         else:
-            bound_user = group_chat.get("bound_external_userid")
-            if bound_user and bound_user != external_userid:
-                reply = "该群已被其他用户获取，请联系人工服务"
-                self._send_text_reply(
-                    access_token,
-                    open_kfid,
-                    external_userid,
-                    reply,
-                    msgid=msg.get("msgid"),
-                    msgid_prefix="order_",
-                )
-                return
-
             chat_id = group_chat.get("chat_id")
             if not chat_id:
                 reply = f"订单 {order_no} 对应群缺少 chat_id，无法生成二维码"
@@ -240,13 +223,6 @@ class KfEventHandler(BizHandler):
 
             if qr_code:
                 reply = f"订单 {order_no} 的入群二维码：{qr_code}"
-                now = datetime.now(timezone.utc)
-                group_chat["bound_external_userid"] = external_userid
-                group_chat["bound_at"] = now
-                group_chat["bound_order_no"] = order_no
-                group_chat["updated_at"] = now
-                upsert_group_chat(group_chat)
-                mark_pending_done(corp_id, order_no, external_userid, result="sent")
             else:
                 reply = f"订单 {order_no} 暂无法生成二维码，请稍后再试"
 
@@ -258,10 +234,6 @@ class KfEventHandler(BizHandler):
             msgid=msg.get("msgid"),
             msgid_prefix="order_",
         )
-
-    def _save_pending_order(self, corp_id: str, order_no: str, external_userid: str, open_kfid: str) -> None:
-        doc = new_pending_order(corp_id, order_no, external_userid, open_kfid)
-        upsert_pending_order(doc)
 
     def _send_text_reply(
         self,

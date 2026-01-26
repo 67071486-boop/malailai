@@ -12,34 +12,6 @@ db = client.get_database("wecom-development")
 # 初始化日志
 logger = logging.getLogger("log")
 
-# 索引说明：
-# - 适合加索引的场景：高频查询/排序、过滤条件选择性高、线上慢查询稳定复现。
-# - 不建议加索引的场景：低频查询、低选择性字段（如布尔/状态很少种类）、写入高频且查询少。
-# - 索引过多的影响：每次插入/更新都要维护索引结构，增加写入延迟；索引会占用额外存储与内存。
-
-
-def ensure_indexes():
-    """创建/确保必要索引存在。"""
-    try:
-        # group_chats：chat_id 精确查询（唯一）
-        db.group_chats.create_index("chat_id", unique=True)
-        # group_chats：按 corp_id + name 查询（订单号映射群名）
-        db.group_chats.create_index([("corp_id", 1), ("name", 1)])
-
-        # pending_order_qr：按状态+时间扫描（定时任务）
-        db.pending_order_qr.create_index([("status", 1), ("created_at", 1)])
-        # pending_order_qr：唯一定位一条待推送记录
-        db.pending_order_qr.create_index(
-            [("corp_id", 1), ("order_no", 1), ("external_userid", 1)],
-            unique=True,
-        )
-
-        # corp_config_id：按 config_id 或 corp_id+chat_id 查询
-        db.corp_config_id.create_index("config_id", unique=True)
-        db.corp_config_id.create_index([("corp_id", 1), ("chat_id", 1)])
-    except PyMongoError as e:
-        logger.info(f"ensure_indexes errorMsg= {e}")
-
 
 def query_counterbyid(id):
     """
@@ -257,23 +229,13 @@ def upsert_pending_order(doc):
         logger.info(f"upsert_pending_order errorMsg= {e}")
 
 
-def query_pending_orders():
-    """查询全部待推送记录列表（按创建时间升序）。"""
+def query_pending_orders(limit=50):
+    """查询待推送记录列表。"""
     try:
-        return list(db.pending_order_qr.find({"status": "pending"}).sort("created_at", 1))
+        return list(db.pending_order_qr.find({"status": "pending"}).limit(limit))
     except PyMongoError as e:
         logger.info(f"query_pending_orders errorMsg= {e}")
         return []
-
-
-def delete_expired_pending_orders(expired_before):
-    """删除过期的待推送记录。"""
-    try:
-        db.pending_order_qr.delete_many(
-            {"status": "pending", "created_at": {"$lt": expired_before}}
-        )
-    except PyMongoError as e:
-        logger.info(f"delete_expired_pending_orders errorMsg= {e}")
 
 
 def mark_pending_done(corp_id, order_no, external_userid, result=None):
