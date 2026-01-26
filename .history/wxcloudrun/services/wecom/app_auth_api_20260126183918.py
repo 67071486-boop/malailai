@@ -7,7 +7,7 @@
 from typing import Any, Dict, Optional
 from .base import BaseClient, WeComApiError
 from .suite_api import SuiteApi
-from wxcloudrun.services import token_service
+from wxcloudrun.services import token_cache
 
 
 class AppAuthApi(BaseClient):
@@ -21,7 +21,7 @@ class AppAuthApi(BaseClient):
         参数：`suite_id` 为第三方应用的 SuiteID。
         返回包含 `pre_auth_code`。
         """
-        token = token_service.get_suite_access_token_cached()
+        token = token_cache.get_suite_access_token()
         if not token:
             raise WeComApiError("missing suite_access_token")
         url = "https://qyapi.weixin.qq.com/cgi-bin/service/get_pre_auth_code"
@@ -43,7 +43,7 @@ class AppAuthApi(BaseClient):
         参数：企业 corp_id 与已获取到的 `permanent_code`。
         返回包含 `auth_corp_info`（企业信息）及授权应用信息等。
         """
-        token = token_service.get_suite_access_token_cached()
+        token = token_cache.get_suite_access_token()
         if not token:
             raise WeComApiError("missing suite_access_token")
         url = "https://qyapi.weixin.qq.com/cgi-bin/service/v2/get_auth_info"
@@ -63,7 +63,7 @@ class AppAuthApi(BaseClient):
 
         返回示例包含 `access_token` 与 `expires_in`。
         """
-        token = token_service.get_suite_access_token_cached()
+        token = token_cache.get_suite_access_token()
         if not token:
             raise WeComApiError("missing suite_access_token")
         url = "https://qyapi.weixin.qq.com/cgi-bin/service/get_corp_token"

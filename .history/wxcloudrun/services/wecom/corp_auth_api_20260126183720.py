@@ -5,7 +5,7 @@
 """
 from typing import Any, Dict
 from .base import BaseClient, WeComApiError
-from wxcloudrun.services import token_service
+from wxcloudrun.services import token_cache
 
 
 class CorpAuthApi(BaseClient):
@@ -17,7 +17,7 @@ class CorpAuthApi(BaseClient):
 
         返回包含 `access_token` 与 `expires_in`。
         """
-        suite_token = token_service.get_suite_access_token_cached()
+        suite_token = token_cache.get_suite_access_token()
         if not suite_token:
             raise WeComApiError("missing suite_access_token")
         url = "https://qyapi.weixin.qq.com/cgi-bin/service/get_corp_token"
@@ -35,10 +35,12 @@ def fetch_corp_access_token(
     session=None,
     timeout: int = 10,
 ) -> Dict[str, Any]:
-    return token_service.fetch_corp_access_token(
-        corp_id,
-        permanent_code,
-        suite_id,
-        session=session,
-        timeout=timeout,
-    )
+    client = CorpAuthApi(session=session, timeout=timeout)
+    data = client.get_corp_token(suite_id, corp_id, permanent_code)
+    access_token = data.get("access_token")
+    if not access_token:
+        raise WeComApiError("missing access_token in response")
+    expires_in = int(data.get("expires_in", 7200))
+    # 保存企业 access_token 以便后续接口调用使用
+    token_cache.save_corp_token(corp_id, access_token, expires_in)
+    return data

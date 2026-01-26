@@ -188,16 +188,6 @@ def query_group_chat_by_name(corp_id, name):
         return None
 
 
-def query_group_chats(filter_doc=None, *, limit=50, skip=0):
-    """查询客户群列表（支持过滤/分页）。"""
-    try:
-        filter_doc = filter_doc or {}
-        return list(db.group_chats.find(filter_doc).skip(skip).limit(limit))
-    except PyMongoError as e:
-        logger.info(f"query_group_chats errorMsg= {e}")
-        return []
-
-
 # ===== 微信客服（KF）消息游标存储 =====
 
 
@@ -276,20 +266,6 @@ def query_pending_orders():
         return list(db.pending_order_qr.find({"status": "pending"}).sort("created_at", 1))
     except PyMongoError as e:
         logger.info(f"query_pending_orders errorMsg= {e}")
-        return []
-
-
-def query_pending_orders_paged(*, status="pending", limit=50, skip=0):
-    """分页查询待推送记录（按创建时间升序）。"""
-    try:
-        return list(
-            db.pending_order_qr.find({"status": status})
-            .sort("created_at", 1)
-            .skip(skip)
-            .limit(limit)
-        )
-    except PyMongoError as e:
-        logger.info(f"query_pending_orders_paged errorMsg= {e}")
         return []
 
 

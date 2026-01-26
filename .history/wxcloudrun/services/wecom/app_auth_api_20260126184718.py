@@ -21,7 +21,7 @@ class AppAuthApi(BaseClient):
         参数：`suite_id` 为第三方应用的 SuiteID。
         返回包含 `pre_auth_code`。
         """
-        token = token_service.get_suite_access_token_cached()
+        token = token_cache.get_suite_access_token()
         if not token:
             raise WeComApiError("missing suite_access_token")
         url = "https://qyapi.weixin.qq.com/cgi-bin/service/get_pre_auth_code"

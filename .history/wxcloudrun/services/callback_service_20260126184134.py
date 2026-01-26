@@ -11,8 +11,8 @@ from wxcloudrun.services.token_service import (
     WXWORK_TOKEN,
     WXWORK_ENCODING_AES_KEY,
     get_suite_access_token,
-    save_suite_ticket,
 )
+from wxcloudrun.services import token_cache
 from wxcloudrun.services.auth_service import async_get_permanent_code
 from wxcloudrun.services.biz import biz_dispatcher
 
@@ -161,7 +161,7 @@ def handle_command_callback(request: Request) -> ResponseReturnValue:
             suite_ticket = decrypted_json.get("xml", {}).get("SuiteTicket")
             if suite_ticket:
                 try:
-                    save_suite_ticket(suite_ticket)
+                    token_cache.save_suite_ticket(suite_ticket)
                     print("[callback_service] 已保存 suite_ticket 长度=", len(suite_ticket), flush=True)
                     get_suite_access_token()
                 except Exception:

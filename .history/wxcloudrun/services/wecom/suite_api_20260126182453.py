@@ -5,16 +5,17 @@
 """
 from typing import Any, Dict, Optional
 from .base import BaseClient, WeComApiError
-from wxcloudrun.services import token_service
+from .token_provider import SuiteTokenProvider
 
 
 class SuiteApi(BaseClient):
-    def __init__(self, session=None, timeout: int = 10):
+    def __init__(self, session=None, timeout: int = 10, token_provider: Optional[SuiteTokenProvider] = None):
         super().__init__(session=session, timeout=timeout)
+        self.token_provider = token_provider or SuiteTokenProvider()
 
     def get_suite_access_token(self) -> Optional[str]:
-        """从缓存获取 `suite_access_token`。"""
-        return token_service.get_suite_access_token_cached()
+        """从 `SuiteTokenProvider` 获取缓存的 `suite_access_token`。"""
+        return self.token_provider.get_suite_access_token()
 
     def get_permanent_code(self, auth_code: str) -> Dict[str, Any]:
         """通过 `auth_code` 向企业微信申请 `permanent_code` 和企业信息。
@@ -50,11 +51,18 @@ def fetch_suite_access_token(
     *,
     session=None,
     timeout: int = 10,
+    token_provider: Optional[SuiteTokenProvider] = None,
 ) -> Dict[str, Any]:
-    return token_service.fetch_suite_access_token(
-        ticket,
-        suite_id,
-        suite_secret,
-        session=session,
-        timeout=timeout,
-    )
+    provider = token_provider or SuiteTokenProvider()
+    client = BaseClient(session=session, timeout=timeout)
+    url = "https://qyapi.weixin.qq.com/cgi-bin/service/get_suite_token"
+    payload = {"suite_id": suite_id, "suite_secret": suite_secret, "suite_ticket": ticket}
+    data = client._do_post(url, json=payload)
+    BaseClient._raise_if_errcode(data, "fetch_suite_access_token", required_keys=["suite_access_token", "expires_in"])
+    token = data.get("suite_access_token")
+    if not token:
+        raise WeComApiError("missing suite_access_token in response")
+    expires = int(data.get("expires_in", 7200))
+    # 将获取到的 suite_access_token 缓存到 token_provider 中，方便后续调用复用
+    provider.save_suite_access_token(str(token), expires)
+    return data
