@@ -17,6 +17,8 @@ from wxcloudrun.dao import (
     upsert_kf_cursor,
     query_group_chat_by_name,
     query_corp_config_by_chat,
+    upsert_corp_config,
+    upsert_group_chat,
 )
 from wxcloudrun.model import new_kf_cursor
 from wxcloudrun.services import token_service
@@ -216,13 +218,32 @@ class KfEventHandler(BizHandler):
                         "remark": order_no,
                         "chat_id_list": [chat_id],
                     }
-                    add_resp = self._contact_way_api.add_join_way(
-                        access_token,
-                        payload,
-                        corp_id=corp_id,
-                    )
-                    join_way = add_resp.get("join_way") if isinstance(add_resp, dict) else None
+                    add_resp = self._contact_way_api.add_join_way(access_token, payload)
+                    config_id = add_resp.get("config_id")
+                    if not config_id:
+                        raise ValueError("missing config_id from add_join_way")
+
+                    join_resp = self._contact_way_api.get_join_way(access_token, config_id)
+                    join_way = join_resp.get("join_way") if isinstance(join_resp, dict) else None
                     qr_code = join_way.get("qr_code") if isinstance(join_way, dict) else None
+
+                    now = datetime.now(timezone.utc)
+                    upsert_corp_config(
+                        {
+                            "corp_id": corp_id,
+                            "chat_id": chat_id,
+                            "config_id": config_id,
+                            "join_way": join_way,
+                            "contact_way": None,
+                            "updated_at": now,
+                            "created_at": now,
+                        }
+                    )
+
+                    group_chat["join_way"] = join_way
+                    group_chat["join_way_config_id"] = config_id
+                    group_chat["updated_at"] = now
+                    upsert_group_chat(group_chat)
                 except Exception as exc:
                     print("[biz.kf] add_join_way failed", order_no, "err=", exc, flush=True)
 

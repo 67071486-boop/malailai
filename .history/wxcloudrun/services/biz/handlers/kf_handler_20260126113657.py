@@ -16,12 +16,10 @@ from wxcloudrun.dao import (
     query_kf_cursor,
     upsert_kf_cursor,
     query_group_chat_by_name,
-    query_corp_config_by_chat,
 )
 from wxcloudrun.model import new_kf_cursor
 from wxcloudrun.services import token_service
 from wxcloudrun.services.wecom.kf.session_manager import KfSessionApi
-from wxcloudrun.services.wecom.externalcontact.contact_way_manager import ContactWayApi
 
 
 class KfEventHandler(BizHandler):
@@ -32,7 +30,6 @@ class KfEventHandler(BizHandler):
         self._lock = threading.Lock()
         self._pulling = set()
         self._session_api = KfSessionApi()
-        self._contact_way_api = ContactWayApi()
 
     def can_handle(self, evt_type: Optional[str], payload: Dict) -> bool:
         return evt_type in self.HANDLED_TYPES
@@ -189,48 +186,10 @@ class KfEventHandler(BizHandler):
         if not group_chat:
             reply = f"未找到订单 {order_no} 对应的群信息"
         else:
+            chat_name = group_chat.get("name") or order_no
             chat_id = group_chat.get("chat_id")
-            if not chat_id:
-                reply = f"订单 {order_no} 对应群缺少 chat_id，无法生成二维码"
-                self._send_text_reply(
-                    access_token,
-                    open_kfid,
-                    external_userid,
-                    reply,
-                    msgid=msg.get("msgid"),
-                    msgid_prefix="order_",
-                )
-                return
-
-            join_way = group_chat.get("join_way") if isinstance(group_chat.get("join_way"), dict) else None
-            if not join_way:
-                config_doc = query_corp_config_by_chat(corp_id, chat_id)
-                if config_doc and isinstance(config_doc.get("join_way"), dict):
-                    join_way = config_doc.get("join_way")
-
-            qr_code = join_way.get("qr_code") if isinstance(join_way, dict) else None
-            if not qr_code:
-                try:
-                    payload = {
-                        "scene": 2,
-                        "remark": order_no,
-                        "chat_id_list": [chat_id],
-                    }
-                    add_resp = self._contact_way_api.add_join_way(
-                        access_token,
-                        payload,
-                        corp_id=corp_id,
-                    )
-                    join_way = add_resp.get("join_way") if isinstance(add_resp, dict) else None
-                    qr_code = join_way.get("qr_code") if isinstance(join_way, dict) else None
-                except Exception as exc:
-                    print("[biz.kf] add_join_way failed", order_no, "err=", exc, flush=True)
-
-            if qr_code:
-                reply = f"订单 {order_no} 的入群二维码：{qr_code}"
-            else:
-                reply = f"订单 {order_no} 暂无法生成二维码，请稍后再试"
-
+            status_text = group_chat.get("status_text") or "active"
+            reply = f"订单 {order_no} 对应群：{chat_name}（chat_id: {chat_id}，状态：{status_text}）"
         self._send_text_reply(
             access_token,
             open_kfid,
