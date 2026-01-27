@@ -1,10 +1,23 @@
 from flask import Flask
+from flask_cors import CORS
 import config
 from wxcloudrun.dao import ensure_indexes
 
 # 初始化web应用
 app = Flask(__name__, instance_relative_config=True)
 app.config["DEBUG"] = getattr(config, "DEBUG", False)
+
+# 允许前端跨域访问（按需可扩展）
+CORS(
+	app,
+	resources={
+		r"/api/*": {
+			"origins": ["https://suqing.chat","https://test.suqing.chat"],
+			"methods": ["GET", "POST", "OPTIONS"],
+			"allow_headers": ["Content-Type"],
+		}
+	},
+)
 
 # 加载控制器
 from wxcloudrun import views
