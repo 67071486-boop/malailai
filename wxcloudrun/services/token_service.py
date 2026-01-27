@@ -1,15 +1,15 @@
-import os
 import logging
 from typing import Optional, Dict, Any
 from wxcloudrun import dao
 from wxcloudrun.services.wecom.base import BaseClient, WeComApiError
+import config
 
 # 企微配置（全部从环境变量读取）
-WXWORK_CORP_ID = os.getenv("WXWORK_CORP_ID", "your_corp_id")
-WXWORK_TOKEN = os.getenv("WXWORK_TOKEN", "your_token")
-WXWORK_ENCODING_AES_KEY = os.getenv("WXWORK_ENCODING_AES_KEY", "your_aes_key")
-WXWORK_SUITE_ID = os.getenv("WXWORK_SUITE_ID", "your_suite_id")
-WXWORK_SUITE_SECRET = os.getenv("WXWORK_SUITE_SECRET", "your_suite_secret")
+WXWORK_CORP_ID = config.WXWORK_CORP_ID
+WXWORK_TOKEN = config.WXWORK_TOKEN
+WXWORK_ENCODING_AES_KEY = config.WXWORK_ENCODING_AES_KEY
+WXWORK_SUITE_ID = config.WXWORK_SUITE_ID
+WXWORK_SUITE_SECRET = config.WXWORK_SUITE_SECRET
 
 # token_service 负责：缓存读写（DB）+ 缺失时的拉取刷新
 

@@ -1,4 +1,3 @@
-import os
 from urllib.parse import quote
 from wxcloudrun.services.wecom_client import get_suite_client, WeComApiError
 from flask import Blueprint, request, redirect, url_for, session
@@ -6,11 +5,12 @@ from flask.typing import ResponseReturnValue
 from wxcloudrun.services.callback_service import handle_data_callback, handle_command_callback
 from wxcloudrun.services.token_service import WXWORK_SUITE_ID, get_suite_access_token
 from wxcloudrun.response import make_succ_response, make_err_response
+import config
 
 wxwork_bp = Blueprint("wxwork", __name__, url_prefix="/wxwork")
 
 # 可选：默认重定向地址（需配置可信域名）
-_DEFAULT_REDIRECT_URI = os.getenv("WXWORK_OAUTH_REDIRECT")
+_DEFAULT_REDIRECT_URI = config.WXWORK_OAUTH_REDIRECT
 
 
 @wxwork_bp.route("/callback/data", methods=["GET", "POST"])

@@ -5,7 +5,7 @@ from pymongo.errors import PyMongoError
 import config
 
 # MongoDB连接配置（从config读取，避免硬编码）
-MONGO_URI = getattr(config, "MONGO_URI")
+MONGO_URI = getattr(config, "MONGO_URI", None)
 MONGO_DB_NAME = getattr(config, "MONGO_DB_NAME")
 client = MongoClient(MONGO_URI)
 db = client.get_database(MONGO_DB_NAME)
