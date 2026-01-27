@@ -39,7 +39,7 @@ def oauth_login():
         redirect_uri,
         scope="snsapi_privateinfo",
         state=state,
-        appid=config.WXWORK_CORP_ID,
+        appid=config.WXWORK_SUITE_ID,
     )
     return redirect(login_url)
 
