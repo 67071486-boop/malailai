@@ -12,6 +12,7 @@ from .corp_auth_api import CorpAuthApi, fetch_corp_access_token
 from .contact_api import ContactApi
 from .message_api import MessageApi
 from .app_auth_api import AppAuthApi, fetch_pre_auth_code, fetch_auth_info, fetch_app_permissions, fetch_corp_token
+from .auth.web_oauth import WebOAuthApi, build_oauth2_url
 from .contact_manager import ContactManager, get_contact_manager
 _shared_session = requests.Session()
 
@@ -43,6 +44,10 @@ def get_auth_info_api(session: Optional[requests.Session] = None) -> AppAuthApi:
 
 def get_app_auth_api(session: Optional[requests.Session] = None) -> AppAuthApi:
     return AppAuthApi(session=session or _shared_session)
+
+
+def get_web_oauth_api(session: Optional[requests.Session] = None) -> WebOAuthApi:
+    return WebOAuthApi(session=session or _shared_session)
 
 
 class CorpClient:
@@ -104,6 +109,9 @@ __all__ = [
     "fetch_pre_auth_code",
     "fetch_app_permissions",
     "fetch_corp_token",
+    "WebOAuthApi",
+    "get_web_oauth_api",
+    "build_oauth2_url",
     "ContactManager",
     "get_contact_manager",
     "CorpClient",

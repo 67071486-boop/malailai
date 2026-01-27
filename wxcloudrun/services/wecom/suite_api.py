@@ -1,7 +1,6 @@
 """第三方应用（Suite）相关 API。
 
-封装 Suite 相关的常用调用，如获取 `suite_access_token`、永久授权码、
-以及基于 suite 的临时用户信息查询（getuserinfo3rd）。
+封装 Suite 相关的常用调用，如获取 `suite_access_token`、永久授权码。
 """
 from typing import Any, Dict, Optional
 from .base import BaseClient, WeComApiError
@@ -27,19 +26,6 @@ class SuiteApi(BaseClient):
         url = "https://qyapi.weixin.qq.com/cgi-bin/service/get_permanent_code"
         data = self._do_post(url + f"?suite_access_token={token}", json={"auth_code": auth_code})
         self._raise_if_errcode(data, "get_permanent_code", required_keys=["permanent_code", "auth_corp_info"])
-        return data
-
-    def getuserinfo3rd(self, code: str) -> Dict[str, Any]:
-        """使用 `code`（企业授权后回调或前端得到的 code）查询第三方临时用户信息。
-
-        该接口基于 suite_access_token 调用，会返回用户的 userid 等信息。
-        """
-        token = self.get_suite_access_token()
-        if not token:
-            raise WeComApiError("missing suite_access_token")
-        url = "https://qyapi.weixin.qq.com/cgi-bin/service/getuserinfo3rd"
-        data = self._do_get(url, params={"suite_access_token": token, "code": code})
-        self._raise_if_errcode(data, "getuserinfo3rd")
         return data
 
 

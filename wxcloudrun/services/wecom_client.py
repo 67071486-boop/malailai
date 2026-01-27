@@ -16,6 +16,8 @@ from wxcloudrun.services.wecom import (
     fetch_pre_auth_code,
     fetch_app_permissions,
     fetch_corp_token,
+    get_web_oauth_api,
+    build_oauth2_url,
     ContactManager,
     get_contact_manager,
 )
@@ -38,4 +40,6 @@ __all__ = [
     "fetch_pre_auth_code",
     "fetch_app_permissions",
     "fetch_corp_token",
+    "get_web_oauth_api",
+    "build_oauth2_url",
 ]

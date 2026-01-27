@@ -1,9 +1,9 @@
 from urllib.parse import quote
-from wxcloudrun.services.wecom_client import WeComApiError
+from wxcloudrun.services.wecom_client import get_suite_client, WeComApiError
 from flask import Blueprint, request, redirect, url_for, session
 from flask.typing import ResponseReturnValue
 from wxcloudrun.services.callback_service import handle_data_callback, handle_command_callback
-from wxcloudrun.services.token_service import get_suite_access_token
+from wxcloudrun.services.token_service import WXWORK_SUITE_ID, get_suite_access_token
 from wxcloudrun.services.wecom.auth.web_oauth import build_oauth2_url, get_user_info
 from wxcloudrun.response import make_succ_response, make_err_response
 import config
@@ -39,7 +39,7 @@ def oauth_login():
         redirect_uri,
         scope="snsapi_privateinfo",
         state=state,
-        appid=config.WXWORK_CORP_ID,
+        appid=WXWORK_SUITE_ID,
     )
     return redirect(login_url)
 
