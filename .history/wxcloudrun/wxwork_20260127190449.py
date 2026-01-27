@@ -43,6 +43,7 @@ def oauth_login():
     )
     return redirect(login_url)
 
+
 @wxwork_bp.route("/oauth/callback", methods=["GET"])
 def oauth_callback():
     """接收成员授权 code，换取用户身份信息。"""

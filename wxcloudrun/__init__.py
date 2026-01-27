@@ -9,10 +9,13 @@ app.config["DEBUG"] = getattr(config, "DEBUG", False)
 # 加载控制器
 from wxcloudrun import views
 from wxcloudrun import wxwork
+from wxcloudrun.api import api_bp
 from wxcloudrun.services.scheduler import init_scheduler
 
 # 注册企业微信蓝图
 app.register_blueprint(wxwork.wxwork_bp)
+# 注册前端 API 蓝图
+app.register_blueprint(api_bp)
 
 # 加载配置
 app.config.from_object("config")

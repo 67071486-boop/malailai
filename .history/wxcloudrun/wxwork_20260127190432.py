@@ -19,6 +19,7 @@ def callback_data() -> ResponseReturnValue:
     print("[数据回调入口] ", flush=True)
     return handle_data_callback(request)
 
+
 @wxwork_bp.route("/callback/command", methods=["GET", "POST"])
 def callback_command() -> ResponseReturnValue:
     """企业微信指令回调（suite_ticket、create_auth 等）。"""
@@ -42,6 +43,7 @@ def oauth_login():
         f"state={state}#wechat_redirect"
     )
     return redirect(login_url)
+
 
 @wxwork_bp.route("/oauth/callback", methods=["GET"])
 def oauth_callback():
