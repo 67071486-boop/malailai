@@ -45,7 +45,7 @@ def api_suite_getuserinfo3rd():
 def api_suite_getuserdetail3rd():
     """前端调用：通过 user_ticket 获取成员敏感信息。"""
     params = request.get_json(silent=True) or {}
-    user_ticket = params.get("user_ticket")
+    user_ticket = params.get("user_ticket") or request.args.get("user_ticket")
     if not user_ticket:
         return make_err_response("user_ticket is required")
 
