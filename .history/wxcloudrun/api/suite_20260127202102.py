@@ -41,7 +41,7 @@ def api_suite_getuserinfo3rd():
         return make_err_response(str(e))
 
 
-@api_bp.route("/suite/getuserdetail3rd", methods=["GET", "POST"])
+@api_bp.route("/suite/getuserdetail3rd", methods=["POST"])
 def api_suite_getuserdetail3rd():
     """前端调用：通过 user_ticket 获取成员敏感信息。"""
     params = request.get_json(silent=True) or {}
