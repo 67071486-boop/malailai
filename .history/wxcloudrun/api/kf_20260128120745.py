@@ -115,7 +115,7 @@ def api_kf_account_contact_way():
             open_kfid,
             scene=params.get("scene"),
         )
-        return make_succ_response(data.get("url", data))
+        return make_succ_response(data)
     except ValueError as exc:
         return make_err_response(str(exc))
     except WeComApiError as e:
