@@ -173,11 +173,8 @@ __all__ = [
     "get_suite_access_token_cached",
     "save_corp_access_token",
     "get_corp_access_token_cached",
-    "save_jsapi_ticket",
-    "get_jsapi_ticket_cached",
     "fetch_suite_access_token",
     "fetch_corp_access_token",
-    "fetch_jsapi_ticket",
     "get_suite_access_token",
     "get_corp_access_token",
 ]

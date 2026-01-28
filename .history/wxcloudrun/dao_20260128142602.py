@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 from datetime import datetime
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
@@ -412,7 +411,7 @@ def get_corp_access_token(corp_id: str):
         return None
 
 
-def _build_jsapi_ticket_key(corp_id: str, ticket_type: str, agent_id: Optional[str] = None) -> str:
+def _build_jsapi_ticket_key(corp_id: str, ticket_type: str, agent_id: str | None = None) -> str:
     if ticket_type == "agent":
         if not agent_id:
             raise ValueError("agent_id required for agent jsapi_ticket")
@@ -420,7 +419,7 @@ def _build_jsapi_ticket_key(corp_id: str, ticket_type: str, agent_id: Optional[s
     return f"jsapi_ticket:corp:{corp_id}"
 
 
-def save_jsapi_ticket(corp_id: str, ticket: str, expires_in: int, *, ticket_type: str = "corp", agent_id: Optional[str] = None):
+def save_jsapi_ticket(corp_id: str, ticket: str, expires_in: int, *, ticket_type: str = "corp", agent_id: str | None = None):
     """保存 jsapi_ticket 及过期时间。"""
     try:
         key = _build_jsapi_ticket_key(corp_id, ticket_type, agent_id)
@@ -444,7 +443,7 @@ def save_jsapi_ticket(corp_id: str, ticket: str, expires_in: int, *, ticket_type
         logger.info(f"save_jsapi_ticket errorMsg= {e}")
 
 
-def get_jsapi_ticket(corp_id: str, *, ticket_type: str = "corp", agent_id: Optional[str] = None):
+def get_jsapi_ticket(corp_id: str, *, ticket_type: str = "corp", agent_id: str | None = None):
     try:
         key = _build_jsapi_ticket_key(corp_id, ticket_type, agent_id)
         doc = db.wecom_tokens.find_one({"key": key})

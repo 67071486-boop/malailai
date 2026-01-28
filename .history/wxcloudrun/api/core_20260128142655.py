@@ -25,7 +25,6 @@ from wxcloudrun.model import new_counter
 from wxcloudrun.response import make_err_response, make_succ_empty_response, make_succ_response
 from wxcloudrun.services import token_service
 from wxcloudrun.services.wecom_client import WeComApiError, fetch_auth_info, get_contact_manager
-from wxcloudrun.services.wecom import fetch_agent_list
 
 
 @api_bp.route("/count", methods=["POST"])
@@ -124,36 +123,6 @@ def api_corp_auth_info():
             return make_err_response("auth_corp_info parse error")
 
     return make_succ_response(auth_corp_info)
-
-
-@api_bp.route("/v1/agent_ids", methods=["POST"])
-def api_agent_ids():
-    """前端调用：按 corp_id 获取可访问的应用 agentid 列表。"""
-    params = request.get_json(silent=True) or {}
-    corp_id = params.get("corp_id")
-    if not corp_id:
-        return make_err_response("missing corp_id")
-
-    corp_doc = query_corp_auth(corp_id)
-    if not corp_doc:
-        return make_err_response("corp_auth not found")
-    permanent_code = corp_doc.get("permanent_code")
-    if not permanent_code:
-        return make_err_response("permanent_code missing")
-
-    access_token = token_service.get_corp_access_token(corp_id, permanent_code)
-    if not access_token:
-        return make_err_response("unable to obtain access_token")
-
-    try:
-        data = fetch_agent_list(access_token)
-        agent_list = data.get("agentlist") or []
-        agent_ids = [item.get("agentid") for item in agent_list if item.get("agentid") is not None]
-        return make_succ_response(agent_ids)
-    except WeComApiError as e:
-        return make_err_response(str(e))
-    except Exception as e:
-        return make_err_response(str(e))
 
 
 def _build_jsapi_signature(ticket: str, nonce_str: str, timestamp: int, url: str) -> str:
