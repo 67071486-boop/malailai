@@ -97,11 +97,10 @@ def api_pending_orders():
     return make_succ_response(data)
 
 
-@api_bp.route("/v1/corp_auth_info", methods=["POST"])
+@api_bp.route("/v1/corp_auth_info", methods=["GET"])
 def api_corp_auth_info():
     """前端调用：按 corp_id 查询授权企业信息。"""
-    params = request.get_json(silent=True) or {}
-    corp_id = params.get("corp_id")
+    corp_id = request.args.get("corp_id")
     if not corp_id:
         return make_err_response("missing corp_id")
 

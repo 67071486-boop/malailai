@@ -9,7 +9,6 @@ from wxcloudrun.dao import (
     delete_counterbyid,
     insert_counter,
     query_all_corp_auths,
-    query_corp_auth,
     query_counterbyid,
     query_group_chat,
     query_group_chat_by_name,
@@ -95,31 +94,6 @@ def api_pending_orders():
     skip = _parse_int(request.args.get("skip"), 0)
     data = query_pending_orders_paged(status=status, limit=limit, skip=skip)
     return make_succ_response(data)
-
-
-@api_bp.route("/v1/corp_auth_info", methods=["POST"])
-def api_corp_auth_info():
-    """前端调用：按 corp_id 查询授权企业信息。"""
-    params = request.get_json(silent=True) or {}
-    corp_id = params.get("corp_id")
-    if not corp_id:
-        return make_err_response("missing corp_id")
-
-    doc = query_corp_auth(corp_id)
-    if not doc:
-        return make_err_response("corp_auth not found")
-
-    auth_corp_info = doc.get("auth_corp_info")
-    if not auth_corp_info:
-        return make_err_response("auth_corp_info not found")
-
-    if isinstance(auth_corp_info, str):
-        try:
-            auth_corp_info = json.loads(auth_corp_info)
-        except Exception:
-            return make_err_response("auth_corp_info parse error")
-
-    return make_succ_response(auth_corp_info)
 
 
 @api_bp.route("/update_corp_auths", methods=["POST"])
