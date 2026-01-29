@@ -16,6 +16,7 @@ MONGO_DB_NAME: str = os.environ.get("MONGO_DB_NAME", "demo")
 
 # 企业微信相关配置（统一从此处读取）
 WXWORK_CORP_ID: str = os.environ.get("WXWORK_CORP_ID", "your_corp_id")
+WXWORK_PROVIDER_SECRET: str = os.environ.get("WXWORK_PROVIDER_SECRET", "your_provider_secret")
 # 第三方应用配置
 WXWORK_TOKEN: str = os.environ.get("WXWORK_TOKEN", "your_token")
 WXWORK_ENCODING_AES_KEY: str = os.environ.get("WXWORK_ENCODING_AES_KEY", "your_aes_key")

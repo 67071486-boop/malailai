@@ -7,7 +7,14 @@
 import requests
 from typing import Optional
 from .base import BaseClient, WeComApiError
-from .auth.access_token import SuiteApi, CorpAuthApi, fetch_suite_access_token, fetch_corp_access_token
+from .auth.access_token import (
+    SuiteApi,
+    CorpAuthApi,
+    ProviderAuthApi,
+    fetch_suite_access_token,
+    fetch_corp_access_token,
+    fetch_provider_access_token,
+)
 from .auth.auth_code import AppAuthApi, fetch_pre_auth_code, fetch_auth_info, fetch_app_permissions, fetch_corp_token
 from .agent import AgentApi, fetch_agent_detail, fetch_agent_list
 from .auth.web_oauth import WebOAuthApi, build_oauth2_url
@@ -74,6 +81,7 @@ __all__ = [
     "WeComApiError",
     "SuiteApi",
     "CorpAuthApi",
+    "ProviderAuthApi",
     "AgentApi",
     "SuiteClient",
     "get_suite_client",
@@ -86,6 +94,7 @@ __all__ = [
     "get_app_auth_api",
     "fetch_suite_access_token",
     "fetch_corp_access_token",
+    "fetch_provider_access_token",
     "fetch_auth_info",
     "fetch_pre_auth_code",
     "fetch_app_permissions",

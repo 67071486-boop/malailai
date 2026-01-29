@@ -10,6 +10,7 @@ WXWORK_TOKEN = config.WXWORK_TOKEN
 WXWORK_ENCODING_AES_KEY = config.WXWORK_ENCODING_AES_KEY
 WXWORK_SUITE_ID = config.WXWORK_SUITE_ID
 WXWORK_SUITE_SECRET = config.WXWORK_SUITE_SECRET
+WXWORK_PROVIDER_SECRET = config.WXWORK_PROVIDER_SECRET
 
 # token_service 负责：缓存读写（DB）+ 缺失时的拉取刷新
 
@@ -34,12 +35,20 @@ def save_corp_access_token(corp_id: str, token: str, expires_in: int) -> None:
     dao.save_corp_access_token(corp_id, token, expires_in)
 
 
+def save_provider_access_token(token: str, expires_in: int) -> None:
+    dao.save_provider_access_token(token, expires_in)
+
+
 def save_jsapi_ticket(corp_id: str, ticket: str, expires_in: int, *, ticket_type: str = "corp", agent_id: Optional[str] = None) -> None:
     dao.save_jsapi_ticket(corp_id, ticket, expires_in, ticket_type=ticket_type, agent_id=agent_id)
 
 
 def get_corp_access_token_cached(corp_id: str) -> Optional[str]:
     return dao.get_corp_access_token(corp_id)
+
+
+def get_provider_access_token_cached() -> Optional[str]:
+    return dao.get_provider_access_token()
 
 
 def get_jsapi_ticket_cached(corp_id: str, *, ticket_type: str = "corp", agent_id: Optional[str] = None) -> Optional[str]:
@@ -88,6 +97,30 @@ def fetch_corp_access_token(
         raise WeComApiError("missing access_token in response")
     expires_in = int(data.get("expires_in", 7200))
     save_corp_access_token(corp_id, access_token, expires_in)
+    return data
+
+
+def fetch_provider_access_token(
+    corp_id: str,
+    provider_secret: str,
+    *,
+    session=None,
+    timeout: int = 10,
+) -> Dict[str, Any]:
+    client = BaseClient(session=session, timeout=timeout)
+    url = "https://qyapi.weixin.qq.com/cgi-bin/service/get_provider_token"
+    payload = {"corpid": corp_id, "provider_secret": provider_secret}
+    data = client._do_post(url, json=payload)
+    BaseClient._raise_if_errcode(
+        data,
+        "fetch_provider_access_token",
+        required_keys=["provider_access_token", "expires_in"],
+    )
+    token = data.get("provider_access_token")
+    if not token:
+        raise WeComApiError("missing provider_access_token in response")
+    expires_in = int(data.get("expires_in", 7200))
+    save_provider_access_token(str(token), expires_in)
     return data
 
 
@@ -162,6 +195,28 @@ def get_corp_access_token(corp_id: str, permanent_code: str, force_refresh: bool
         return None
 
 
+def get_provider_access_token(force_refresh: bool = False) -> Optional[str]:
+    """获取服务商 provider_access_token（带缓存）。
+    force_refresh=True 时跳过缓存，直接刷新。
+    """
+    if not force_refresh:
+        token = get_provider_access_token_cached()
+        if token:
+            return token
+
+    if not WXWORK_CORP_ID or not WXWORK_PROVIDER_SECRET:
+        return None
+
+    try:
+        fetch_provider_access_token(WXWORK_CORP_ID, WXWORK_PROVIDER_SECRET)
+        return get_provider_access_token_cached()
+    except Exception:
+        logging.getLogger("wxcloudrun.token_service").exception(
+            "get_provider_access_token failed for corp_id=%s", WXWORK_CORP_ID
+        )
+        return None
+
+
 __all__ = [
     "WXWORK_CORP_ID",
     "WXWORK_TOKEN",
@@ -173,11 +228,15 @@ __all__ = [
     "get_suite_access_token_cached",
     "save_corp_access_token",
     "get_corp_access_token_cached",
+    "save_provider_access_token",
+    "get_provider_access_token_cached",
     "save_jsapi_ticket",
     "get_jsapi_ticket_cached",
     "fetch_suite_access_token",
     "fetch_corp_access_token",
+    "fetch_provider_access_token",
     "fetch_jsapi_ticket",
     "get_suite_access_token",
     "get_corp_access_token",
+    "get_provider_access_token",
 ]

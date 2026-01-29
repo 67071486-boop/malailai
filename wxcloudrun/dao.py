@@ -412,6 +412,40 @@ def get_corp_access_token(corp_id: str):
         return None
 
 
+def save_provider_access_token(token: str, expires_in: int):
+    """保存 provider_access_token 及过期时间。"""
+    try:
+        expires_at = datetime.utcnow().timestamp() + expires_in - 300
+        db.wecom_tokens.update_one(
+            {"key": "provider_access_token"},
+            {
+                "$set": {
+                    "key": "provider_access_token",
+                    "value": token,
+                    "expires_at": expires_at,
+                    "updated_at": datetime.utcnow(),
+                }
+            },
+            upsert=True,
+        )
+    except PyMongoError as e:
+        logger.info(f"save_provider_access_token errorMsg= {e}")
+
+
+def get_provider_access_token():
+    try:
+        doc = db.wecom_tokens.find_one({"key": "provider_access_token"})
+        if not doc:
+            return None
+        expires_at = doc.get("expires_at", 0)
+        if expires_at and datetime.utcnow().timestamp() >= expires_at:
+            return None
+        return doc.get("value")
+    except PyMongoError as e:
+        logger.info(f"get_provider_access_token errorMsg= {e}")
+        return None
+
+
 def _build_jsapi_ticket_key(corp_id: str, ticket_type: str, agent_id: Optional[str] = None) -> str:
     if ticket_type == "agent":
         if not agent_id:

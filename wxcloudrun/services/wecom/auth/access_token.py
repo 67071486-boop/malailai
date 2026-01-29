@@ -45,6 +45,23 @@ class CorpAuthApi(BaseClient):
         return data
 
 
+class ProviderAuthApi(BaseClient):
+    def __init__(self, session=None, timeout: int = 10):
+        super().__init__(session=session, timeout=timeout)
+
+    def get_provider_token(self, corp_id: str, provider_secret: str) -> Dict[str, Any]:
+        """获取服务商 provider_access_token。"""
+        if not corp_id:
+            raise WeComApiError("missing corp_id")
+        if not provider_secret:
+            raise WeComApiError("missing provider_secret")
+        url = "https://qyapi.weixin.qq.com/cgi-bin/service/get_provider_token"
+        payload = {"corpid": corp_id, "provider_secret": provider_secret}
+        data = self._do_post(url, json=payload)
+        self._raise_if_errcode(data, "get_provider_token", required_keys=["provider_access_token", "expires_in"])
+        return data
+
+
 def fetch_suite_access_token(
     ticket: str,
     suite_id: str,
@@ -74,6 +91,21 @@ def fetch_corp_access_token(
         corp_id,
         permanent_code,
         suite_id,
+        session=session,
+        timeout=timeout,
+    )
+
+
+def fetch_provider_access_token(
+    corp_id: str,
+    provider_secret: str,
+    *,
+    session=None,
+    timeout: int = 10,
+) -> Dict[str, Any]:
+    return token_service.fetch_provider_access_token(
+        corp_id,
+        provider_secret,
         session=session,
         timeout=timeout,
     )
