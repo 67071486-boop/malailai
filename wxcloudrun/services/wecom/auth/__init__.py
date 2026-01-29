@@ -1,7 +1,6 @@
 from .web_oauth import WebOAuthApi, build_oauth2_url, get_user_detail, get_user_info
-from .suite_api import SuiteApi, fetch_suite_access_token
-from .corp_auth_api import CorpAuthApi, fetch_corp_access_token
-from .app_auth_api import (
+from .access_token import SuiteApi, CorpAuthApi, fetch_suite_access_token, fetch_corp_access_token
+from .auth_code import (
     AppAuthApi,
     fetch_app_permissions,
     fetch_auth_info,

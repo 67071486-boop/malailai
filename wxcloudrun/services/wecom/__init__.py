@@ -7,9 +7,8 @@
 import requests
 from typing import Optional
 from .base import BaseClient, WeComApiError
-from .auth.suite_api import SuiteApi, fetch_suite_access_token
-from .auth.corp_auth_api import CorpAuthApi, fetch_corp_access_token
-from .auth.app_auth_api import AppAuthApi, fetch_pre_auth_code, fetch_auth_info, fetch_app_permissions, fetch_corp_token
+from .auth.access_token import SuiteApi, CorpAuthApi, fetch_suite_access_token, fetch_corp_access_token
+from .auth.auth_code import AppAuthApi, fetch_pre_auth_code, fetch_auth_info, fetch_app_permissions, fetch_corp_token
 from .agent import AgentApi, fetch_agent_detail, fetch_agent_list
 from .auth.web_oauth import WebOAuthApi, build_oauth2_url
 from .enterpriseContact import EnterpriseContactApi, get_enterprise_contact_api
