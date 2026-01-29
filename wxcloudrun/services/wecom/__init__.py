@@ -74,7 +74,6 @@ __all__ = [
     "WeComApiError",
     "SuiteApi",
     "CorpAuthApi",
-    "MessageApi",
     "AgentApi",
     "SuiteClient",
     "get_suite_client",
