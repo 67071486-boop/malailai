@@ -20,6 +20,8 @@ from wxcloudrun.services.wecom import (
     build_oauth2_url,
     ContactManager,
     get_contact_manager,
+    EnterpriseContactApi,
+    get_enterprise_contact_api,
 )
 
 
@@ -42,4 +44,6 @@ __all__ = [
     "fetch_corp_token",
     "get_web_oauth_api",
     "build_oauth2_url",
+    "EnterpriseContactApi",
+    "get_enterprise_contact_api",
 ]

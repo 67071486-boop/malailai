@@ -3,7 +3,7 @@
 封装 Suite 相关的常用调用，如获取 `suite_access_token`、永久授权码。
 """
 from typing import Any, Dict, Optional
-from .base import BaseClient, WeComApiError
+from ..base import BaseClient, WeComApiError
 from wxcloudrun.services import token_service
 
 

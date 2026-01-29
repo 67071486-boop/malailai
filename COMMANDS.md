@@ -3,10 +3,6 @@ git clone git@github.com:67071486-boop/wecom-development.git
 git pull origin main 拉取远程仓库同步
 git commit -m "描述本次改动"
 
-# 常用服务器与项目运行指令（Ubuntu）
-
-以下命令在 Ubuntu 服务器与本地开发时都很常用。把它们放在项目根，便于团队共享。
-
 ## 前提 / 安装基础工具
 （首次在服务器上运行）
 ```bash

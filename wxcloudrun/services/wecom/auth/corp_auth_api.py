@@ -4,7 +4,7 @@
 向企业微信换取对应企业的 `access_token`。获取后可通过 `CorpTokenProvider` 缓存。
 """
 from typing import Any, Dict
-from .base import BaseClient, WeComApiError
+from ..base import BaseClient, WeComApiError
 from wxcloudrun.services import token_service
 
 

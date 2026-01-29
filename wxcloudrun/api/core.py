@@ -24,7 +24,7 @@ from wxcloudrun.dao import (
 from wxcloudrun.model import new_counter
 from wxcloudrun.response import make_err_response, make_succ_empty_response, make_succ_response
 from wxcloudrun.services import token_service
-from wxcloudrun.services.wecom_client import WeComApiError, fetch_auth_info, get_contact_manager
+from wxcloudrun.services.wecom_client import WeComApiError, fetch_auth_info
 from wxcloudrun.services.wecom import fetch_agent_list
 
 
@@ -265,44 +265,3 @@ def update_corp_auths():
             results["failed"] += 1
             results["errors"].append({"corp_id": doc.get("corp_id"), "error": str(e)})
     return make_succ_response(results)
-
-
-@api_bp.route("/department/simplelist", methods=["POST"])
-def department_simplelist():
-    """测试接口：调用 ContactManager.simplelist_departments，返回部门 ID 列表。"""
-    try:
-        params = request.get_json() or {}
-        access_token = params.get("access_token")
-        dept_id = params.get("id")
-        corp_id = params.get("corp_id")
-
-        if not access_token:
-            corp_doc = None
-            if corp_id:
-                all_docs = query_all_corp_auths()
-                for d in all_docs:
-                    if d.get("corp_id") == corp_id:
-                        corp_doc = d
-                        break
-            if corp_doc is None:
-                all_docs = query_all_corp_auths()
-                if not all_docs:
-                    return make_err_response("no corp_auth records available to obtain access_token")
-                corp_doc = all_docs[0]
-
-            permanent_code = corp_doc.get("permanent_code")
-            corp_id = corp_doc.get("corp_id")
-            if not permanent_code or not corp_id:
-                return make_err_response("corp_auth record missing corp_id or permanent_code")
-
-            access_token = token_service.get_corp_access_token(corp_id, permanent_code)
-            if not access_token:
-                return make_err_response("unable to obtain access_token for corp_id=" + str(corp_id))
-
-        cm = get_contact_manager()
-        data = cm.simplelist_departments(access_token, id=dept_id)
-        return make_succ_response(data)
-    except WeComApiError as e:
-        return make_err_response(str(e))
-    except Exception as e:
-        return make_err_response(str(e))

@@ -7,14 +7,12 @@
 import requests
 from typing import Optional
 from .base import BaseClient, WeComApiError
-from .suite_api import SuiteApi, fetch_suite_access_token
-from .corp_auth_api import CorpAuthApi, fetch_corp_access_token
-from .contact_api import ContactApi
-from .message_api import MessageApi
-from .app_auth_api import AppAuthApi, fetch_pre_auth_code, fetch_auth_info, fetch_app_permissions, fetch_corp_token
+from .auth.suite_api import SuiteApi, fetch_suite_access_token
+from .auth.corp_auth_api import CorpAuthApi, fetch_corp_access_token
+from .auth.app_auth_api import AppAuthApi, fetch_pre_auth_code, fetch_auth_info, fetch_app_permissions, fetch_corp_token
 from .agent import AgentApi, fetch_agent_detail, fetch_agent_list
 from .auth.web_oauth import WebOAuthApi, build_oauth2_url
-from .contact_manager import ContactManager, get_contact_manager
+from .enterpriseContact import EnterpriseContactApi, get_enterprise_contact_api
 _shared_session = requests.Session()
 
 
@@ -26,16 +24,6 @@ def get_suite_api(session: Optional[requests.Session] = None) -> SuiteApi:
 def get_corp_auth_api(session: Optional[requests.Session] = None) -> CorpAuthApi:
     """返回用于处理企业授权与 corp_token 的 `CorpAuthApi` 实例。"""
     return CorpAuthApi(session=session or _shared_session)
-
-
-def get_contact_api(session: Optional[requests.Session] = None) -> ContactApi:
-    """返回用于访问通讯录接口的 `ContactApi` 实例。"""
-    return ContactApi(session=session or _shared_session)
-
-
-def get_message_api(session: Optional[requests.Session] = None) -> MessageApi:
-    """返回用于发送企业消息的 `MessageApi` 实例。"""
-    return MessageApi(session=session or _shared_session)
 
 
 def get_agent_api(session: Optional[requests.Session] = None) -> AgentApi:
@@ -65,20 +53,9 @@ class CorpClient:
 
     def __init__(self, session: Optional[requests.Session] = None):
         self._auth_api = get_corp_auth_api(session)
-        self._contact_api = get_contact_api(session)
-        self._message_api = get_message_api(session)
 
     def get_corp_access_token(self, suite_id: str, corp_id: str, permanent_code: str):
         return self._auth_api.get_corp_token(suite_id, corp_id, permanent_code)
-
-    def send_message(self, corp_access_token: str, payload: dict):
-        return self._message_api.send_message(corp_access_token, payload)
-
-    def get_user(self, corp_access_token: str, userid: str):
-        return self._contact_api.get_user(corp_access_token, userid)
-
-    def get_department(self, corp_access_token: str, dept_id: int):
-        return self._contact_api.get_department(corp_access_token, dept_id)
 
 
 # 兼容旧工厂函数
@@ -98,7 +75,6 @@ __all__ = [
     "WeComApiError",
     "SuiteApi",
     "CorpAuthApi",
-    "ContactApi",
     "MessageApi",
     "AgentApi",
     "SuiteClient",
@@ -107,7 +83,6 @@ __all__ = [
     "get_suite_api",
     "get_corp_auth_api",
     "get_contact_api",
-    "get_message_api",
     "get_agent_api",
     "get_auth_info_api",
     "get_app_auth_api",
@@ -122,7 +97,7 @@ __all__ = [
     "WebOAuthApi",
     "get_web_oauth_api",
     "build_oauth2_url",
-    "ContactManager",
-    "get_contact_manager",
+    "EnterpriseContactApi",
+    "get_enterprise_contact_api",
     "CorpClient",
 ]

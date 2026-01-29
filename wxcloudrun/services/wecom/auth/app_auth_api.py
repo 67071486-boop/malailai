@@ -5,7 +5,7 @@
 本模块对外提供 `AppAuthApi` 类与便捷函数 `fetch_pre_auth_code`/`fetch_auth_info`。
 """
 from typing import Any, Dict, Optional
-from .base import BaseClient, WeComApiError
+from ..base import BaseClient, WeComApiError
 from .suite_api import SuiteApi
 from wxcloudrun.services import token_service
 

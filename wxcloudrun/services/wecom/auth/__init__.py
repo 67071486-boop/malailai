@@ -1,8 +1,26 @@
 from .web_oauth import WebOAuthApi, build_oauth2_url, get_user_detail, get_user_info
+from .suite_api import SuiteApi, fetch_suite_access_token
+from .corp_auth_api import CorpAuthApi, fetch_corp_access_token
+from .app_auth_api import (
+    AppAuthApi,
+    fetch_app_permissions,
+    fetch_auth_info,
+    fetch_corp_token,
+    fetch_pre_auth_code,
+)
 
 __all__ = [
     "WebOAuthApi",
+    "SuiteApi",
+    "CorpAuthApi",
+    "AppAuthApi",
     "build_oauth2_url",
+    "fetch_suite_access_token",
+    "fetch_corp_access_token",
+    "fetch_pre_auth_code",
+    "fetch_auth_info",
+    "fetch_corp_token",
+    "fetch_app_permissions",
     "get_user_info",
     "get_user_detail",
 ]
