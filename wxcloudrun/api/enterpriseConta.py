@@ -38,7 +38,7 @@ def api_enterprise_contact_search():
             full_match_field=_optional_int(params, "full_match_field"),
             cursor=params.get("cursor"),
         )
-        return make_succ_response(data)
+        return make_succ_response(data.get("query_result", data))
     except ValueError as exc:
         return make_err_response(str(exc))
     except WeComApiError as e:
@@ -62,7 +62,7 @@ def api_enterprise_contact_batchsearch():
             provider_access_token=params.get("provider_access_token"),
             agentid=_optional_int(params, "agentid"),
         )
-        return make_succ_response(data)
+        return make_succ_response(data.get("query_result_list", data))
     except ValueError as exc:
         return make_err_response(str(exc))
     except WeComApiError as e:
@@ -89,7 +89,7 @@ def api_enterprise_contact_sort():
             provider_access_token=params.get("provider_access_token"),
             sort_options=sort_options,
         )
-        return make_succ_response(data)
+        return make_succ_response(data.get("useridlist", data))
     except ValueError as exc:
         return make_err_response(str(exc))
     except WeComApiError as e:
