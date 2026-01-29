@@ -7,3 +7,4 @@ from wxcloudrun.api import core  # noqa: F401
 from wxcloudrun.api import kf  # noqa: F401
 from wxcloudrun.api import media  # noqa: F401
 from wxcloudrun.api import suite  # noqa: F401
+from wxcloudrun.api import enterpriseConta  # noqa: F401

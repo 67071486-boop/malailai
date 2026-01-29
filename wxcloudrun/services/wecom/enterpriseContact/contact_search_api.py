@@ -2,14 +2,15 @@
 from typing import Any, Dict, Optional
 
 from ..base import BaseClient, WeComApiError
+from wxcloudrun.services.service import token_service
 
 
 class EnterpriseContactApi(BaseClient):
     def search_contact(
         self,
-        provider_access_token: str,
         auth_corpid: str,
         query_word: str,
+        provider_access_token: Optional[str] = None,
         query_type: Optional[int] = None,
         query_range: Optional[int] = None,
         agentid: Optional[int] = None,
@@ -21,6 +22,8 @@ class EnterpriseContactApi(BaseClient):
 
         POST https://qyapi.weixin.qq.com/cgi-bin/service/contact/search?provider_access_token=ACCESS_TOKEN
         """
+        if not provider_access_token:
+            provider_access_token = token_service.get_provider_access_token()
         if not provider_access_token:
             raise WeComApiError("missing provider_access_token")
         if not auth_corpid:
@@ -52,15 +55,17 @@ class EnterpriseContactApi(BaseClient):
 
     def batch_search_contact(
         self,
-        provider_access_token: str,
         auth_corpid: str,
         query_request_list: list,
+        provider_access_token: Optional[str] = None,
         agentid: Optional[int] = None,
     ) -> Dict[str, Any]:
         """通讯录批量搜索（服务商）。
 
         POST https://qyapi.weixin.qq.com/cgi-bin/service/contact/batchsearch?provider_access_token=ACCESS_TOKEN
         """
+        if not provider_access_token:
+            provider_access_token = token_service.get_provider_access_token()
         if not provider_access_token:
             raise WeComApiError("missing provider_access_token")
         if not auth_corpid:
@@ -82,12 +87,14 @@ class EnterpriseContactApi(BaseClient):
 
     def sort_userid(
         self,
-        provider_access_token: str,
         auth_corpid: str,
         useridlist: list,
+        provider_access_token: Optional[str] = None,
         sort_options: Optional[list] = None,
     ) -> Dict[str, Any]:
         """通讯录 userid 排序（服务商）。"""
+        if not provider_access_token:
+            provider_access_token = token_service.get_provider_access_token()
         if not provider_access_token:
             raise WeComApiError("missing provider_access_token")
         if not auth_corpid:
