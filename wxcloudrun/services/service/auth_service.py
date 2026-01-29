@@ -5,12 +5,12 @@ import traceback
 
 from wxcloudrun.dao import query_corp_auth, insert_corp_auth, update_corp_auth
 from wxcloudrun.model import new_corp_auth
-from wxcloudrun.services.wecom_client import get_suite_client, WeComApiError, fetch_auth_info
+from wxcloudrun.services.wecom import get_suite_api, WeComApiError, fetch_auth_info
 
 
 def get_permanent_code(auth_code: str) -> Optional[Tuple[str, dict]]:
     """通过临时授权码获取永久授权码并落库。"""
-    suite = get_suite_client()
+    suite = get_suite_api()
     try:
         result = suite.get_permanent_code(auth_code)
     except WeComApiError as e:
