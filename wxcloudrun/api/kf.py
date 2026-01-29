@@ -160,7 +160,7 @@ def api_kf_servicer_add():
             user_ids=user_ids,
             department_ids=dept_ids,
         )
-        return make_succ_response(data)
+        return data
     except ValueError as exc:
         return make_err_response(str(exc))
     except WeComApiError as e:
@@ -186,7 +186,7 @@ def api_kf_servicer_del():
             user_ids=user_ids,
             department_ids=dept_ids,
         )
-        return make_succ_response(data)
+        return data
     except ValueError as exc:
         return make_err_response(str(exc))
     except WeComApiError as e:
