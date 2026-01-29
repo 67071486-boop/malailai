@@ -23,7 +23,7 @@ from wxcloudrun.dao import (
 )
 from wxcloudrun.model import new_counter
 from wxcloudrun.response import make_err_response, make_succ_empty_response, make_succ_response
-from wxcloudrun.services import token_service
+from wxcloudrun.services.service import token_service
 from wxcloudrun.services.wecom_client import WeComApiError, fetch_auth_info
 from wxcloudrun.services.wecom import fetch_agent_list
 

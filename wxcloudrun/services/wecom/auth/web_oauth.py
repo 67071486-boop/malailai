@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 from urllib.parse import quote
 
 import config
-from wxcloudrun.services import token_service
+from wxcloudrun.services.service import token_service
 from wxcloudrun.services.wecom.base import BaseClient, WeComApiError
 
 

@@ -1,6 +1,6 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
-from wxcloudrun.services.sync_service import sync_tick
+from wxcloudrun.services.service.sync_service import sync_tick
 
 
 _scheduler = None

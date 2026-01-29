@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional
 
 from ..base import BaseClient, WeComApiError
 from .access_token import SuiteApi
-from wxcloudrun.services import token_service
+from wxcloudrun.services.service import token_service
 
 
 class AppAuthApi(BaseClient):

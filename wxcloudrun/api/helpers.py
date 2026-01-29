@@ -1,6 +1,6 @@
 from wxcloudrun.dao import query_all_corp_auths
 from wxcloudrun.response import make_err_response
-from wxcloudrun.services import token_service
+from wxcloudrun.services.service import token_service
 
 
 def _parse_int(value, default):

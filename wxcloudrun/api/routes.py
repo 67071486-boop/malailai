@@ -20,7 +20,7 @@ from wxcloudrun.dao import (
 )
 from wxcloudrun.model import new_counter
 from wxcloudrun.response import make_err_response, make_succ_empty_response, make_succ_response
-from wxcloudrun.services import token_service
+from wxcloudrun.services.service import token_service
 from wxcloudrun.services.wecom.kf.account_manager import KfAccountApi
 from wxcloudrun.services.wecom.kf.servicer_manager import KfStaffApi
 from wxcloudrun.services.wecom.media_api import get_temp_media, upload_temp_media

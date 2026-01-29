@@ -10,7 +10,7 @@ from wxcloudrun.dao import (
     upsert_group_chat,
     delete_expired_pending_orders,
 )
-from wxcloudrun.services import token_service
+from wxcloudrun.services.service import token_service
 from wxcloudrun.services.wecom.kf.session_manager import KfSessionApi
 from wxcloudrun.services.wecom.externalcontact.contact_way_manager import ContactWayApi
 
