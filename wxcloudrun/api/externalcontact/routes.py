@@ -46,6 +46,7 @@ def api_externalcontact_groupchat_get():
     - corp_id: 企业 ID（可选）
     - name: 客户群名称（可选；可与 corp_id 组合）
     - qr_code: 是否触发二维码相关处理（可选，true/false）
+    - booster: 额外业务标识（可选，写入 bound.booster）
 
     返回值格式：
     - {"code": 0, "data": {...}}，未命中则 data 为 null，命中则返回客户群详情
@@ -55,6 +56,7 @@ def api_externalcontact_groupchat_get():
     corp_id = params.get("corp_id")
     name = params.get("name")
     qr_code = _is_truthy(params.get("qr_code"))
+    booster = params.get("booster")
 
     if chat_id:
         doc = query_group_chat(chat_id)
@@ -96,5 +98,16 @@ def api_externalcontact_groupchat_get():
                     upsert_group_chat(doc)
             except Exception as exc:
                 print("[api.externalcontact] add_join_way failed", exc, flush=True)
+
+    if booster is not None and doc:
+        bound = doc.get("bound") if isinstance(doc.get("bound"), dict) else {}
+        existing_booster = bound.get("booster")
+        if existing_booster is None:
+            bound["booster"] = booster
+            doc["bound"] = bound
+            doc["updated_at"] = datetime.now(timezone.utc)
+            upsert_group_chat(doc)
+        elif existing_booster != booster:
+            return make_succ_response(None)
 
     return make_succ_response(doc)
