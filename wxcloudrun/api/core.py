@@ -70,20 +70,34 @@ def api_health():
     return make_succ_response({"ok": True})
 
 
-@api_bp.route("/v1/group_chats", methods=["GET"])
+@api_bp.route("/v1/group_chats", methods=["GET", "POST"])
 def api_group_chats():
-    """前端调用：查询客户群。"""
-    chat_id = request.args.get("chat_id")
-    corp_id = request.args.get("corp_id")
-    name = request.args.get("name")
+    """前端调用：查询客户群。
+
+    入参（GET: query string / POST: JSON body）：
+    - chat_id: 客户群唯一 ID（优先级最高，传入则按 chat_id 查询单条）
+    - name: 客户群名称（必填于名称查询）
+    - corp_id: 企业 ID（可选；与 name 搭配可精确查询）
+    - limit: 列表查询数量，默认 50
+    - skip: 列表查询偏移量，默认 0
+
+    返回值格式：
+    - 单条查询（chat_id 或 name）：{"code": 0, "data": {...}}，未命中则 data 为 null
+    - 列表查询：{"code": 0, "data": [ ... ]}
+    """
+    params = request.get_json(silent=True) if request.method == "POST" else request.args
+    params = params or {}
+    chat_id = params.get("chat_id")
+    corp_id = params.get("corp_id")
+    name = params.get("name")
 
     if chat_id:
         return make_succ_response(query_group_chat(chat_id))
-    if corp_id and name:
+    if name:
         return make_succ_response(query_group_chat_by_name(corp_id, name))
 
-    limit = _parse_int(request.args.get("limit"), 50)
-    skip = _parse_int(request.args.get("skip"), 0)
+    limit = _parse_int(params.get("limit"), 50)
+    skip = _parse_int(params.get("skip"), 0)
     filter_doc = {}
     if corp_id:
         filter_doc["corp_id"] = corp_id

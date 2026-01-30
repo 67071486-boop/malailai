@@ -182,9 +182,14 @@ def query_group_chat(chat_id):
 
 
 def query_group_chat_by_name(corp_id, name):
-    """根据 corp_id + 群名称查询客户群记录。"""
+    """根据群名称查询客户群记录，可选 corp_id。"""
+    if not name:
+        return None
+    filter_doc = {"name": name}
+    if corp_id:
+        filter_doc["corp_id"] = corp_id
     try:
-        return db.group_chats.find_one({"corp_id": corp_id, "name": name})
+        return db.group_chats.find_one(filter_doc)
     except PyMongoError as e:
         logger.info(f"query_group_chat_by_name errorMsg= {e}")
         return None
