@@ -311,6 +311,7 @@ class KfEventHandler(BizHandler):
         event_payload = payload if isinstance(payload, dict) else (msg.get("event") or {})
         event = event_payload.get("event_type")
         if event == "enter_session":
+            print(event_payload, flush=True)
             self._on_enter_session(msg, event_payload, access_token, corp_id)
         elif event == "msg_send_fail":
             self._on_msg_send_fail(msg)
