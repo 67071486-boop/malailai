@@ -90,6 +90,8 @@ class KfOrderProcessor:
                 expires_at = join_way.get("media_id_expires_at")
                 expired = True
                 if media_id and isinstance(expires_at, datetime):
+                    if expires_at.tzinfo is None:
+                        expires_at = expires_at.replace(tzinfo=timezone.utc)
                     expired = expires_at <= now
                 if not media_id or expired:
                     media_id = self._fetch_media_id_from_qr(access_token, qr_code)
