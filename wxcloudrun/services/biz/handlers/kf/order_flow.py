@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import os
 import tempfile
 import requests
@@ -84,21 +84,36 @@ class KfOrderProcessor:
                     print("[biz.kf] add_join_way failed", order_no, "err=", exc, flush=True)
 
             if qr_code and isinstance(join_way, dict):
+                now = datetime.now(timezone.utc)
                 media_id = join_way.get("media_id")
-                if not media_id:
+                expires_at = join_way.get("media_id_expires_at")
+                expired = True
+                if media_id and isinstance(expires_at, datetime):
+                    expired = expires_at <= now
+                if not media_id or expired:
                     media_id = self._fetch_media_id_from_qr(access_token, qr_code)
                     if media_id:
                         join_way["media_id"] = media_id
+                        # 临时素材 3 天过期，预留 5 分钟缓冲
+                        join_way["media_id_expires_at"] = now + timedelta(days=3) - timedelta(minutes=5)
                         group_chat["join_way"] = join_way
 
                 if media_id:
+                    self._sender.send_text_reply(
+                        access_token,
+                        open_kfid,
+                        external_userid,
+                        f"订单 {order_no} 的入群二维码如下：",
+                        msgid=msgid,
+                        msgid_prefix="order_txt_",
+                    )
                     self._sender.send_reply_message(
                         access_token,
                         open_kfid,
                         external_userid,
                         ("image", {"media_id": media_id}),
                         msgid=msgid,
-                        msgid_prefix="order_",
+                        msgid_prefix="order_img_",
                     )
                     sent_qr = True
                     now = datetime.now(timezone.utc)
