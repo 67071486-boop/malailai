@@ -7,6 +7,7 @@ from ...dispatcher import BizHandler
 from wxcloudrun.dao import query_corp_auth
 from wxcloudrun.services.service import token_service
 from wxcloudrun.services.wecom.kf.session_manager import KfSessionApi
+from wxcloudrun.services.wecom.kf.servicer_manager import KfStaffApi
 from wxcloudrun.services.wecom.externalcontact.contact_way_manager import ContactWayApi
 from .config_cache import KfConfigCache
 from .cursor_store import KfCursorStore
@@ -24,6 +25,7 @@ class KfEventHandler(BizHandler):
         self._lock = threading.Lock()
         self._pulling = set()
         self._session_api = KfSessionApi()
+        self._staff_api = KfStaffApi()
         self._contact_way_api = ContactWayApi()
         self._cursor_store = KfCursorStore()
         self._sender = KfMessageSender(self._session_api)
@@ -172,6 +174,8 @@ class KfEventHandler(BizHandler):
                     msgid=msg.get("msgid"),
                     msgid_prefix="menu_",
                 )
+                if self._reply_contains_keyword(reply, "人工"):
+                    self._transfer_to_servicer(access_token, open_kfid, external_userid, msg.get("msgid"))
             else:
                 print("[biz.kf] menu_id has no reply configured", menu_id, flush=True)
             return
@@ -254,3 +258,59 @@ class KfEventHandler(BizHandler):
     def _on_reject_switch_change(self, msg: Dict) -> None:
         # TODO: 拒收开关变更处理。
         print("[biz.kf] reject_customer_msg_switch_change", msg.get("msgid"), flush=True)
+
+    def _transfer_to_servicer(
+        self, access_token: str, open_kfid: str, external_userid: str, msgid: Optional[str]
+    ) -> None:
+        try:
+            data = self._staff_api.list_staffs(access_token, open_kfid)
+        except Exception as exc:
+            print("[biz.kf] list_staffs failed", msgid, "err=", exc, flush=True)
+            return
+
+        servicers = data.get("servicer_list") if isinstance(data, dict) else None
+        if not isinstance(servicers, list):
+            print("[biz.kf] servicer_list invalid", msgid, flush=True)
+            return
+
+        target_userid = None
+        for item in servicers:
+            if not isinstance(item, dict):
+                continue
+            userid = item.get("userid")
+            status = item.get("status")
+            if userid and status == 0:
+                target_userid = userid
+                break
+
+        if not target_userid:
+            print("[biz.kf] no available servicer", msgid, flush=True)
+            return
+
+        try:
+            self._session_api.trans_service_state(
+                access_token,
+                open_kfid,
+                external_userid,
+                3,
+                servicer_userid=target_userid,
+            )
+        except Exception as exc:
+            print("[biz.kf] trans_service_state failed", msgid, "err=", exc, flush=True)
+
+    @staticmethod
+    def _reply_contains_keyword(reply: Tuple[str, Dict[str, Any]], keyword: str) -> bool:
+        msgtype, body = reply
+        if not keyword:
+            return False
+
+        def _scan(value) -> bool:
+            if isinstance(value, str):
+                return keyword in value
+            if isinstance(value, dict):
+                return any(_scan(v) for v in value.values())
+            if isinstance(value, list):
+                return any(_scan(v) for v in value)
+            return False
+
+        return _scan({"msgtype": msgtype, "body": body})
