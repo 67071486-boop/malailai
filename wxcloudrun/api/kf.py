@@ -115,6 +115,40 @@ def _validate_msgmenu(msgmenu):
     return None
 
 
+def _validate_menu_replies(menu_replies):
+    if not isinstance(menu_replies, dict):
+        return "menu_replies must be an object"
+    if not menu_replies:
+        return "menu_replies cannot be empty"
+    for menu_id, reply in menu_replies.items():
+        if not isinstance(menu_id, str) or not menu_id.strip():
+            return "menu_replies key invalid"
+        if _utf8_len(menu_id) > 128:
+            return "menu_replies key too long"
+        if not isinstance(reply, dict):
+            return f"menu_replies[{menu_id}] must be an object"
+        msgtype = reply.get("msgtype")
+        if not isinstance(msgtype, str) or not msgtype.strip():
+            return f"menu_replies[{menu_id}].msgtype is required"
+        msgtype = msgtype.strip()
+        if msgtype == "text":
+            text = reply.get("text")
+            if not isinstance(text, dict) or not isinstance(text.get("content"), str):
+                return f"menu_replies[{menu_id}].text.content is required"
+            if _utf8_len(text.get("content")) > 2048:
+                return f"menu_replies[{menu_id}].text.content too long"
+        elif msgtype == "msgmenu":
+            msgmenu = reply.get("msgmenu")
+            if not isinstance(msgmenu, dict):
+                return f"menu_replies[{menu_id}].msgmenu is required"
+            err = _validate_msgmenu(msgmenu)
+            if err:
+                return f"menu_replies[{menu_id}].msgmenu {err}"
+        else:
+            return f"menu_replies[{menu_id}].msgtype unsupported"
+    return None
+
+
 @api_bp.route("/kf/account/add", methods=["POST"])
 def api_kf_account_add():
     """新增客服账号。"""
@@ -318,6 +352,7 @@ def api_kf_welcome_get():
 
     msgtype = doc.get("msgtype")
     payload = doc.get("payload")
+    menu_replies = doc.get("menu_replies")
     if not isinstance(msgtype, str) or not isinstance(payload, dict):
         legacy = doc.get("welcome_reply")
         if isinstance(legacy, str) and legacy.strip():
@@ -327,14 +362,15 @@ def api_kf_welcome_get():
     if not isinstance(msgtype, str) or not isinstance(payload, dict):
         return make_err_response("welcome config invalid")
 
-    return make_succ_response(
-        {
-            "corp_id": doc.get("corp_id"),
-            "open_kfid": doc.get("open_kfid"),
-            "msgtype": msgtype,
-            msgtype: payload,
-        }
-    )
+    data = {
+        "corp_id": doc.get("corp_id"),
+        "open_kfid": doc.get("open_kfid"),
+        "msgtype": msgtype,
+        msgtype: payload,
+    }
+    if isinstance(menu_replies, dict):
+        data["menu_replies"] = menu_replies
+    return make_succ_response(data)
 
 
 @api_bp.route("/kf/welcome/set", methods=["POST"])
@@ -363,6 +399,7 @@ def api_kf_welcome_set():
     msgtype = msgtype.strip()
 
     payload = None
+    menu_replies = None
     if msgtype == "text":
         text = params.get("text")
         if isinstance(text, dict) and isinstance(text.get("content"), str):
@@ -386,11 +423,18 @@ def api_kf_welcome_set():
         if err:
             return make_err_response(err)
         payload = msgmenu
+        menu_replies = params.get("menu_replies")
+        err = _validate_menu_replies(menu_replies)
+        if err:
+            return make_err_response(err)
     else:
         return make_err_response("unsupported msgtype")
 
-    doc = new_kf_welcome(corp_id, msgtype, payload, open_kfid=open_kfid)
-    upsert_kf_welcome(doc)
-    return make_succ_response(
-        {"corp_id": corp_id, "open_kfid": open_kfid, "msgtype": msgtype, msgtype: payload}
+    doc = new_kf_welcome(
+        corp_id, msgtype, payload, open_kfid=open_kfid, menu_replies=menu_replies
     )
+    upsert_kf_welcome(doc)
+    data = {"corp_id": corp_id, "open_kfid": open_kfid, "msgtype": msgtype, msgtype: payload}
+    if isinstance(menu_replies, dict):
+        data["menu_replies"] = menu_replies
+    return make_succ_response(data)

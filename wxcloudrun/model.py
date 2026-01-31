@@ -61,13 +61,14 @@ def new_pending_order(corp_id, order_no, external_userid, open_kfid):
     }
 
 
-def new_kf_welcome(corp_id, msgtype, payload, open_kfid=None):
+def new_kf_welcome(corp_id, msgtype, payload, *, open_kfid=None, menu_replies=None):
     now = datetime.utcnow()
     return {
         "corp_id": corp_id,
         "open_kfid": open_kfid,
         "msgtype": msgtype,
         "payload": payload,
+        "menu_replies": menu_replies,
         "created_at": now,
         "updated_at": now,
     }
