@@ -3,7 +3,7 @@
 biz_dispatcher 用于把企业微信回调解密后的 payload 路由到具体业务 handler。
 """
 from .dispatcher import BizDispatcher
-from .handlers.kf_handler import KfEventHandler
+from .handlers.kf import KfEventHandler
 from .handlers.externalcontact_handler import ContactEventHandler as ExternalContactEventHandler
 
 # 全局 dispatcher，按需注册 handler（可扩展更多业务模块）。
