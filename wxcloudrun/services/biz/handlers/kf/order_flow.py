@@ -1,4 +1,5 @@
 from datetime import datetime, timezone, timedelta
+import time
 import os
 import tempfile
 import requests
@@ -142,6 +143,7 @@ class KfOrderProcessor:
             )
 
         if sent_qr:
+            time.sleep(0.5)
             config = self._config_cache.get_config(corp_id, open_kfid)
             if config and config.get("msgtype") == "msgmenu":
                 payload = config.get("payload")
