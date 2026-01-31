@@ -1,4 +1,3 @@
-import json
 from threading import Thread
 from typing import Optional, Tuple
 import traceback
@@ -28,14 +27,14 @@ def get_permanent_code(auth_code: str) -> Optional[Tuple[str, dict]]:
     corp_auth = query_corp_auth(corp_id)
     if corp_auth:
         corp_auth["permanent_code"] = permanent_code
-        # 保存 basic auth_corp_info（legacy），随后尝试拉取 v2 授权信息覆盖保存
-        corp_auth["auth_corp_info"] = json.dumps(auth_corp_info)
+        # 保存 basic auth_corp_info（对象存储），随后尝试拉取 v2 授权信息覆盖保存
+        corp_auth["auth_corp_info"] = auth_corp_info
         update_corp_auth(corp_auth)
     else:
         corp_auth = new_corp_auth(
             corp_id=corp_id,
             permanent_code=permanent_code,
-            auth_corp_info=json.dumps(auth_corp_info),
+            auth_corp_info=auth_corp_info,
         )
         insert_corp_auth(corp_auth)
 
@@ -46,7 +45,7 @@ def get_permanent_code(auth_code: str) -> Optional[Tuple[str, dict]]:
             # 把 v2 的整个响应存为 auth_corp_info（覆盖旧数据），便于后续使用
             corp_auth_db = query_corp_auth(corp_id)
             if corp_auth_db:
-                corp_auth_db["auth_corp_info"] = json.dumps(v2)
+                corp_auth_db["auth_corp_info"] = v2
                 update_corp_auth(corp_auth_db)
                 print(f"[auth_service] 已拉取并保存 v2 授权信息 corp_id={corp_id}", flush=True)
         except Exception as e:

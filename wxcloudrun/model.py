@@ -10,7 +10,7 @@
 # {
 #   "corp_id": str,         # 企业ID
 #   "permanent_code": str,  # 永久授权码
-#   "auth_corp_info": str,  # 企业授权信息（JSON字符串）
+#   "auth_corp_info": dict, # 企业授权信息（对象/子文档）
 #   "created_at": datetime, # 创建时间
 #   "updated_at": datetime  # 更新时间
 # }
@@ -56,6 +56,18 @@ def new_pending_order(corp_id, order_no, external_userid, open_kfid):
         "external_userid": external_userid,
         "open_kfid": open_kfid,
         "status": "pending",
+        "created_at": now,
+        "updated_at": now,
+    }
+
+
+def new_kf_welcome(corp_id, msgtype, payload, open_kfid=None):
+    now = datetime.utcnow()
+    return {
+        "corp_id": corp_id,
+        "open_kfid": open_kfid,
+        "msgtype": msgtype,
+        "payload": payload,
         "created_at": now,
         "updated_at": now,
     }

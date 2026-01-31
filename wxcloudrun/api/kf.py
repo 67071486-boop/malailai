@@ -8,6 +8,8 @@ from wxcloudrun.api.helpers import (
     _require_str_param,
     _resolve_access_token,
 )
+from wxcloudrun.dao import query_kf_welcome, upsert_kf_welcome
+from wxcloudrun.model import new_kf_welcome
 from wxcloudrun.response import make_err_response, make_succ_response
 from wxcloudrun.services.wecom.kf.account_manager import KfAccountApi
 from wxcloudrun.services.wecom.kf.servicer_manager import KfStaffApi
@@ -15,6 +17,102 @@ from wxcloudrun.services.wecom_client import WeComApiError
 
 kf_account_api = KfAccountApi()
 kf_staff_api = KfStaffApi()
+
+
+def _utf8_len(value: str) -> int:
+    return len(value.encode("utf-8"))
+
+
+def _require_str_field(obj, key, *, min_bytes=1, max_bytes=None):
+    value = obj.get(key)
+    if not isinstance(value, str):
+        return None, f"{key} must be a string"
+    if not value.strip():
+        return None, f"{key} cannot be empty"
+    length = _utf8_len(value)
+    if min_bytes is not None and length < min_bytes:
+        return None, f"{key} too short"
+    if max_bytes is not None and length > max_bytes:
+        return None, f"{key} too long"
+    return value, None
+
+
+def _validate_msgmenu(msgmenu):
+    if not isinstance(msgmenu, dict):
+        return "msgmenu must be an object"
+    head = msgmenu.get("head_content")
+    if head is not None:
+        if not isinstance(head, str):
+            return "msgmenu.head_content must be a string"
+        if _utf8_len(head) > 1024:
+            return "msgmenu.head_content too long"
+    tail = msgmenu.get("tail_content")
+    if tail is not None:
+        if not isinstance(tail, str):
+            return "msgmenu.tail_content must be a string"
+        if _utf8_len(tail) > 1024:
+            return "msgmenu.tail_content too long"
+
+    items = msgmenu.get("list")
+    if items is None:
+        return None
+    if not isinstance(items, list):
+        return "msgmenu.list must be an array"
+    if len(items) > 10:
+        return "msgmenu.list too many items"
+
+    for idx, item in enumerate(items):
+        if not isinstance(item, dict):
+            return f"msgmenu.list[{idx}] must be an object"
+        item_type = item.get("type")
+        if item_type not in {"click", "view", "miniprogram", "text"}:
+            return f"msgmenu.list[{idx}].type invalid"
+        if item_type == "click":
+            click = item.get("click")
+            if not isinstance(click, dict):
+                return f"msgmenu.list[{idx}].click is required"
+            _, err = _require_str_field(click, "content", min_bytes=1, max_bytes=128)
+            if err:
+                return f"msgmenu.list[{idx}].click.content {err}"
+            if "id" in click and click.get("id") is not None:
+                _, err = _require_str_field(click, "id", min_bytes=1, max_bytes=128)
+                if err:
+                    return f"msgmenu.list[{idx}].click.id {err}"
+        elif item_type == "view":
+            view = item.get("view")
+            if not isinstance(view, dict):
+                return f"msgmenu.list[{idx}].view is required"
+            _, err = _require_str_field(view, "url", min_bytes=1, max_bytes=2048)
+            if err:
+                return f"msgmenu.list[{idx}].view.url {err}"
+            _, err = _require_str_field(view, "content", min_bytes=1, max_bytes=1024)
+            if err:
+                return f"msgmenu.list[{idx}].view.content {err}"
+        elif item_type == "miniprogram":
+            mini = item.get("miniprogram")
+            if not isinstance(mini, dict):
+                return f"msgmenu.list[{idx}].miniprogram is required"
+            _, err = _require_str_field(mini, "appid", min_bytes=1, max_bytes=32)
+            if err:
+                return f"msgmenu.list[{idx}].miniprogram.appid {err}"
+            _, err = _require_str_field(mini, "pagepath", min_bytes=1, max_bytes=1024)
+            if err:
+                return f"msgmenu.list[{idx}].miniprogram.pagepath {err}"
+            if "content" in mini and mini.get("content") is not None:
+                _, err = _require_str_field(mini, "content", min_bytes=0, max_bytes=1024)
+                if err:
+                    return f"msgmenu.list[{idx}].miniprogram.content {err}"
+        elif item_type == "text":
+            text = item.get("text")
+            if not isinstance(text, dict):
+                return f"msgmenu.list[{idx}].text is required"
+            _, err = _require_str_field(text, "content", min_bytes=1, max_bytes=256)
+            if err:
+                return f"msgmenu.list[{idx}].text.content {err}"
+            if "no_newline" in text and text.get("no_newline") is not None:
+                if not isinstance(text.get("no_newline"), (bool, int)):
+                    return f"msgmenu.list[{idx}].text.no_newline invalid"
+    return None
 
 
 @api_bp.route("/kf/account/add", methods=["POST"])
@@ -193,3 +291,106 @@ def api_kf_servicer_del():
         return make_err_response(str(e))
     except Exception as e:
         return make_err_response(str(e))
+
+
+@api_bp.route("/kf/welcome/get", methods=["POST"])
+def api_kf_welcome_get():
+    """获取客服欢迎语配置。"""
+    params = request.get_json() or {}
+    try:
+        corp_id = _require_str_param(params, "corp_id")
+    except ValueError as exc:
+        return make_err_response(str(exc))
+
+    open_kfid = params.get("open_kfid")
+    if open_kfid is not None:
+        if not isinstance(open_kfid, str):
+            return make_err_response("open_kfid must be a string")
+        open_kfid = open_kfid.strip()
+        if not open_kfid:
+            return make_err_response("open_kfid cannot be empty")
+
+    doc = query_kf_welcome(corp_id, open_kfid)
+    if not doc and open_kfid:
+        doc = query_kf_welcome(corp_id, None)
+    if not doc:
+        return make_err_response("welcome config not found")
+
+    msgtype = doc.get("msgtype")
+    payload = doc.get("payload")
+    if not isinstance(msgtype, str) or not isinstance(payload, dict):
+        legacy = doc.get("welcome_reply")
+        if isinstance(legacy, str) and legacy.strip():
+            msgtype = "text"
+            payload = {"content": legacy}
+
+    if not isinstance(msgtype, str) or not isinstance(payload, dict):
+        return make_err_response("welcome config invalid")
+
+    return make_succ_response(
+        {
+            "corp_id": doc.get("corp_id"),
+            "open_kfid": doc.get("open_kfid"),
+            "msgtype": msgtype,
+            msgtype: payload,
+        }
+    )
+
+
+@api_bp.route("/kf/welcome/set", methods=["POST"])
+def api_kf_welcome_set():
+    """设置客服欢迎语配置。"""
+    params = request.get_json() or {}
+    try:
+        corp_id = _require_str_param(params, "corp_id")
+    except ValueError as exc:
+        return make_err_response(str(exc))
+
+    open_kfid = params.get("open_kfid")
+    if open_kfid is not None:
+        if not isinstance(open_kfid, str):
+            return make_err_response("open_kfid must be a string")
+        open_kfid = open_kfid.strip()
+        if not open_kfid:
+            return make_err_response("open_kfid cannot be empty")
+
+    msgtype = params.get("msgtype")
+    if msgtype is None and "welcome_reply" in params:
+        msgtype = "text"
+
+    if not isinstance(msgtype, str) or not msgtype.strip():
+        return make_err_response("msgtype is required")
+    msgtype = msgtype.strip()
+
+    payload = None
+    if msgtype == "text":
+        text = params.get("text")
+        if isinstance(text, dict) and isinstance(text.get("content"), str):
+            content = text.get("content")
+            if _utf8_len(content) > 2048:
+                return make_err_response("text.content too long")
+            payload = {"content": content}
+        elif "welcome_reply" in params:
+            reply = params.get("welcome_reply")
+            if isinstance(reply, str) and reply.strip():
+                if _utf8_len(reply) > 2048:
+                    return make_err_response("text.content too long")
+                payload = {"content": reply}
+        if not payload:
+            return make_err_response("text.content is required")
+    elif msgtype == "msgmenu":
+        msgmenu = params.get("msgmenu")
+        if not isinstance(msgmenu, dict):
+            return make_err_response("msgmenu is required")
+        err = _validate_msgmenu(msgmenu)
+        if err:
+            return make_err_response(err)
+        payload = msgmenu
+    else:
+        return make_err_response("unsupported msgtype")
+
+    doc = new_kf_welcome(corp_id, msgtype, payload, open_kfid=open_kfid)
+    upsert_kf_welcome(doc)
+    return make_succ_response(
+        {"corp_id": corp_id, "open_kfid": open_kfid, "msgtype": msgtype, msgtype: payload}
+    )

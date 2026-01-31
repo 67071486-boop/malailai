@@ -7,7 +7,7 @@
 """
 import threading
 import hashlib
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Dict, Optional, Tuple, Any
 
 from ..dispatcher import BizHandler
@@ -15,6 +15,7 @@ from wxcloudrun.dao import (
     query_corp_auth,
     query_kf_cursor,
     upsert_kf_cursor,
+    query_kf_welcome,
     query_group_chat_by_name,
     upsert_pending_order,
     mark_pending_done,
@@ -28,6 +29,8 @@ from wxcloudrun.services.wecom.externalcontact.contact_way_manager import Contac
 
 class KfEventHandler(BizHandler):
     HANDLED_TYPES = {"kf_msg_or_event"}
+    DEFAULT_WELCOME_REPLY = "您好！我是群码自助机器人，请把订单号发给我获取二维码"
+    WELCOME_CACHE_TTL_SECONDS = 60
 
     def __init__(self):
         # 简单进程内锁，生产建议换成 Redis 分布式锁防止多实例并发拉取。
@@ -35,6 +38,8 @@ class KfEventHandler(BizHandler):
         self._pulling = set()
         self._session_api = KfSessionApi()
         self._contact_way_api = ContactWayApi()
+        self._welcome_lock = threading.Lock()
+        self._welcome_cache = {}
 
     def can_handle(self, evt_type: Optional[str], payload: Dict) -> bool:
         return evt_type in self.HANDLED_TYPES
@@ -139,7 +144,7 @@ class KfEventHandler(BizHandler):
         if msgtype == "text":
             self._handle_text(raw, payload, access_token, corp_id)
         elif msgtype == "event":
-            self._handle_event(raw, payload, access_token)
+            self._handle_event(raw, payload, access_token, corp_id)
         else:
             print("[biz.kf] unsupported msgtype", msgtype, "msgid=", msg.get("msgid"), flush=True)
 
@@ -302,11 +307,11 @@ class KfEventHandler(BizHandler):
         except Exception as exc:
             print("[biz.kf] send_message failed", msgid, "err=", exc, flush=True)
 
-    def _handle_event(self, msg: Dict, payload: Optional[Dict[str, Any]], access_token: str) -> None:
+    def _handle_event(self, msg: Dict, payload: Optional[Dict[str, Any]], access_token: str, corp_id: str) -> None:
         event_payload = payload if isinstance(payload, dict) else (msg.get("event") or {})
         event = event_payload.get("event_type")
         if event == "enter_session":
-            self._on_enter_session(msg, event_payload, access_token)
+            self._on_enter_session(msg, event_payload, access_token, corp_id)
         elif event == "msg_send_fail":
             self._on_msg_send_fail(msg)
         elif event == "servicer_status_change":
@@ -323,18 +328,15 @@ class KfEventHandler(BizHandler):
             print("[biz.kf] unsupported event_type", event, "msgid=", msg.get("msgid"), flush=True)
 
     # === 各事件占位 ===
-    def _on_enter_session(self, msg: Dict, payload: Dict, access_token: str) -> None:
+    def _on_enter_session(self, msg: Dict, payload: Dict, access_token: str, corp_id: str) -> None:
         welcome_code = payload.get("welcome_code")
         if not welcome_code:
             print("[biz.kf] enter_session missing welcome_code", msg.get("msgid"), flush=True)
             return
 
-        reply = "您好！我是群码自助机器人，请把订单号发给我获取二维码"
-        payload = {
-            "code": welcome_code,
-            "msgtype": "text",
-            "text": {"content": reply},
-        }
+        open_kfid = msg.get("open_kfid")
+        msgtype, body = self._get_welcome_message(corp_id, open_kfid)
+        payload = {"code": welcome_code, "msgtype": msgtype, msgtype: body}
         try:
             self._session_api.send_msg_on_event(access_token, payload)
         except Exception as exc:
@@ -363,3 +365,35 @@ class KfEventHandler(BizHandler):
     def _on_reject_switch_change(self, msg: Dict) -> None:
         # TODO: 拒收开关变更处理。
         print("[biz.kf] reject_customer_msg_switch_change", msg.get("msgid"), flush=True)
+
+    def _get_welcome_message(self, corp_id: str, open_kfid: Optional[str]) -> Tuple[str, Dict[str, Any]]:
+        key = f"{corp_id}:{open_kfid or ''}"
+        now = datetime.now(timezone.utc)
+        with self._welcome_lock:
+            cached = self._welcome_cache.get(key)
+            if cached and cached.get("expires_at") and cached["expires_at"] > now:
+                return cached["value"]
+
+        doc = query_kf_welcome(corp_id, open_kfid)
+        if not doc and open_kfid:
+            doc = query_kf_welcome(corp_id, None)
+
+        msgtype = "text"
+        body: Dict[str, Any] = {"content": self.DEFAULT_WELCOME_REPLY}
+        if doc:
+            stored_type = doc.get("msgtype")
+            stored_payload = doc.get("payload")
+            if isinstance(stored_type, str) and isinstance(stored_payload, dict):
+                msgtype = stored_type
+                body = stored_payload
+            else:
+                legacy = doc.get("welcome_reply")
+                if isinstance(legacy, str) and legacy.strip():
+                    body = {"content": legacy}
+
+        with self._welcome_lock:
+            self._welcome_cache[key] = {
+                "value": (msgtype, body),
+                "expires_at": now + timedelta(seconds=self.WELCOME_CACHE_TTL_SECONDS),
+            }
+        return msgtype, body

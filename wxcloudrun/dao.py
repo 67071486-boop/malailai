@@ -42,6 +42,8 @@ def ensure_indexes():
 
         # wecom_tokens：按 key 唯一索引
         db.wecom_tokens.create_index("key", unique=True)
+        # kf_welcome：按 corp_id + open_kfid 唯一索引
+        db.kf_welcome.create_index([("corp_id", 1), ("open_kfid", 1)], unique=True)
     except PyMongoError as e:
         logger.info(f"ensure_indexes errorMsg= {e}")
 
@@ -139,6 +141,36 @@ def update_corp_auth(corp_auth):
         )
     except PyMongoError as e:
         logger.info(f"update_corp_auth errorMsg= {e}")
+
+
+# ===== 微信客服（KF）欢迎语配置存储 =====
+
+
+def query_kf_welcome(corp_id: str, open_kfid: Optional[str] = None):
+    """按 corp_id + open_kfid 查询欢迎语配置。"""
+    try:
+        filter_doc = {"corp_id": corp_id, "open_kfid": open_kfid}
+        return db.kf_welcome.find_one(filter_doc)
+    except PyMongoError as e:
+        logger.info(f"query_kf_welcome errorMsg= {e}")
+        return None
+
+
+def upsert_kf_welcome(doc):
+    """按 corp_id + open_kfid upsert 欢迎语配置。"""
+    try:
+        corp_id = doc.get("corp_id")
+        if not corp_id:
+            raise ValueError("corp_id missing")
+        open_kfid = doc.get("open_kfid", None)
+        filter_doc = {"corp_id": corp_id, "open_kfid": open_kfid}
+        now = datetime.utcnow()
+        existing = db.kf_welcome.find_one(filter_doc, {"created_at": 1})
+        doc["created_at"] = existing.get("created_at") if existing else doc.get("created_at", now)
+        doc["updated_at"] = now
+        db.kf_welcome.update_one(filter_doc, {"$set": doc}, upsert=True)
+    except (PyMongoError, ValueError) as e:
+        logger.info(f"upsert_kf_welcome errorMsg= {e}")
 
 
 # ===== 客户群（externalcontact groupchat）存储 =====
