@@ -40,6 +40,8 @@ class KfEventHandler(BizHandler):
         self._contact_way_api = ContactWayApi()
         self._welcome_lock = threading.Lock()
         self._welcome_cache = {}
+        self._config_lock = threading.Lock()
+        self._config_cache = {}
 
     def can_handle(self, evt_type: Optional[str], payload: Dict) -> bool:
         return evt_type in self.HANDLED_TYPES
@@ -181,6 +183,26 @@ class KfEventHandler(BizHandler):
             print("[biz.kf] missing open_kfid/external_userid", msg.get("msgid"), flush=True)
             return
 
+        menu_id = None
+        if payload and isinstance(payload, dict):
+            menu_id = payload.get("menu_id")
+        elif isinstance(msg.get("text"), dict):
+            menu_id = msg.get("text", {}).get("menu_id")
+        if menu_id:
+            reply = self._get_menu_reply(corp_id, open_kfid, str(menu_id))
+            if reply:
+                self._send_reply_message(
+                    access_token,
+                    open_kfid,
+                    external_userid,
+                    reply,
+                    msgid=msg.get("msgid"),
+                    msgid_prefix="menu_",
+                )
+            else:
+                print("[biz.kf] menu_id has no reply configured", menu_id, flush=True)
+            return
+
         if not is_order_no:
             self._send_text_reply(
                 access_token,
@@ -193,6 +215,7 @@ class KfEventHandler(BizHandler):
             return
 
         group_chat = query_group_chat_by_name(corp_id, order_no)
+        sent_qr = False
         if not group_chat:
             self._save_pending_order(corp_id, order_no, external_userid, open_kfid)
             reply = "订单对应的群正在创建中，创建完成后会自动推送二维码，请稍候"
@@ -246,6 +269,7 @@ class KfEventHandler(BizHandler):
 
             if qr_code:
                 reply = f"订单 {order_no} 的入群二维码：{qr_code}"
+                sent_qr = True
                 now = datetime.now(timezone.utc)
                 group_chat["bound"] = {
                     "external_userid": external_userid,
@@ -268,6 +292,22 @@ class KfEventHandler(BizHandler):
             msgid_prefix="order_",
         )
 
+        if sent_qr:
+            config = self._get_kf_config(corp_id, open_kfid)
+            if config and config.get("msgtype") == "msgmenu":
+                payload = config.get("payload")
+                if isinstance(payload, dict):
+                    menu_payload = dict(payload)
+                    menu_payload["head_content"] = "如需其他服务，请点击"
+                    self._send_reply_message(
+                        access_token,
+                        open_kfid,
+                        external_userid,
+                        ("msgmenu", menu_payload),
+                        msgid=msg.get("msgid"),
+                        msgid_prefix="menu_hint_",
+                    )
+
     def _save_pending_order(self, corp_id: str, order_no: str, external_userid: str, open_kfid: str) -> None:
         doc = new_pending_order(corp_id, order_no, external_userid, open_kfid)
         upsert_pending_order(doc)
@@ -288,19 +328,7 @@ class KfEventHandler(BizHandler):
             "msgtype": "text",
             "text": {"content": content},
         }
-        if msgid:
-            combined = f"{msgid_prefix}{msgid}"
-            if len(combined) > 32:
-                digest = hashlib.md5(combined.encode("utf-8")).hexdigest()
-                if msgid_prefix:
-                    available = 32 - len(msgid_prefix)
-                    if available > 0:
-                        combined = f"{msgid_prefix}{digest[:available]}"
-                    else:
-                        combined = digest[:32]
-                else:
-                    combined = digest[:32]
-            payload["msgid"] = combined
+        self._attach_msgid(payload, msgid, msgid_prefix)
 
         try:
             self._session_api.send_message(access_token, payload)
@@ -375,9 +403,7 @@ class KfEventHandler(BizHandler):
             if cached and cached.get("expires_at") and cached["expires_at"] > now:
                 return cached["value"]
 
-        doc = query_kf_welcome(corp_id, open_kfid)
-        if not doc and open_kfid:
-            doc = query_kf_welcome(corp_id, None)
+        doc = self._get_kf_config(corp_id, open_kfid)
 
         msgtype = "text"
         body: Dict[str, Any] = {"content": self.DEFAULT_WELCOME_REPLY}
@@ -398,3 +424,92 @@ class KfEventHandler(BizHandler):
                 "expires_at": now + timedelta(seconds=self.WELCOME_CACHE_TTL_SECONDS),
             }
         return msgtype, body
+
+    def _get_kf_config(self, corp_id: str, open_kfid: Optional[str]) -> Optional[Dict[str, Any]]:
+        key = f"{corp_id}:{open_kfid or ''}"
+        now = datetime.now(timezone.utc)
+        with self._config_lock:
+            cached = self._config_cache.get(key)
+            if cached and cached.get("expires_at") and cached["expires_at"] > now:
+                return cached["value"]
+
+        doc = query_kf_welcome(corp_id, open_kfid)
+        if not doc and open_kfid:
+            doc = query_kf_welcome(corp_id, None)
+
+        with self._config_lock:
+            self._config_cache[key] = {
+                "value": doc,
+                "expires_at": now + timedelta(seconds=self.WELCOME_CACHE_TTL_SECONDS),
+            }
+        return doc
+
+    def _get_menu_reply(
+        self, corp_id: str, open_kfid: Optional[str], menu_id: str
+    ) -> Optional[Tuple[str, Dict[str, Any]]]:
+        doc = self._get_kf_config(corp_id, open_kfid)
+        if not doc or not menu_id:
+            return None
+
+        menu_replies = doc.get("menu_replies")
+        if isinstance(menu_replies, dict) and menu_id in menu_replies:
+            reply = menu_replies.get(menu_id)
+            normalized = self._normalize_reply(reply)
+            if normalized:
+                return normalized
+        return None
+
+    def _normalize_reply(self, reply: Any) -> Optional[Tuple[str, Dict[str, Any]]]:
+        if not isinstance(reply, dict):
+            return None
+        msgtype = reply.get("msgtype")
+        if not isinstance(msgtype, str) or not msgtype.strip():
+            return None
+        msgtype = msgtype.strip()
+        body = None
+        if msgtype in reply and isinstance(reply.get(msgtype), dict):
+            body = reply.get(msgtype)
+        elif isinstance(reply.get("payload"), dict):
+            body = reply.get("payload")
+        if not isinstance(body, dict):
+            return None
+        return msgtype, body
+
+    def _send_reply_message(
+        self,
+        access_token: str,
+        open_kfid: str,
+        external_userid: str,
+        reply: Tuple[str, Dict[str, Any]],
+        *,
+        msgid: Optional[str] = None,
+        msgid_prefix: str = "",
+    ) -> None:
+        msgtype, body = reply
+        payload = {
+            "touser": external_userid,
+            "open_kfid": open_kfid,
+            "msgtype": msgtype,
+            msgtype: body,
+        }
+        self._attach_msgid(payload, msgid, msgid_prefix)
+        try:
+            self._session_api.send_message(access_token, payload)
+        except Exception as exc:
+            print("[biz.kf] send_message failed", msgid, "err=", exc, flush=True)
+
+    def _attach_msgid(self, payload: Dict[str, Any], msgid: Optional[str], msgid_prefix: str) -> None:
+        if not msgid:
+            return
+        combined = f"{msgid_prefix}{msgid}"
+        if len(combined) > 32:
+            digest = hashlib.md5(combined.encode("utf-8")).hexdigest()
+            if msgid_prefix:
+                available = 32 - len(msgid_prefix)
+                if available > 0:
+                    combined = f"{msgid_prefix}{digest[:available]}"
+                else:
+                    combined = digest[:32]
+            else:
+                combined = digest[:32]
+        payload["msgid"] = combined
