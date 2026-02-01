@@ -3,6 +3,5 @@
 __all__ = [
     "auth_service",
     "callback_service",
-    "sync_service",
     "token_service",
 ]

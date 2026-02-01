@@ -1,5 +1,6 @@
 from typing import Optional
 import hashlib
+import time
 from datetime import datetime, timezone, timedelta
 
 from wxcloudrun.dao import (
@@ -13,8 +14,12 @@ from wxcloudrun.dao import (
 from wxcloudrun.services.service import token_service
 from wxcloudrun.services.wecom.kf.session_manager import KfSessionApi
 from wxcloudrun.services.wecom.externalcontact.contact_way_manager import ContactWayApi
+from wxcloudrun.services.biz.handlers.kf.config_cache import KfConfigCache
+from wxcloudrun.services.biz.handlers.kf.sender import KfMessageSender
 
 # 这里放置主动同步实现（订单二维码自动推送）
+DEFAULT_WELCOME_REPLY = "您好！我是群码自助机器人，请把订单号发给我获取二维码"
+WELCOME_CACHE_TTL_SECONDS = 60
 
 
 def _make_msgid(prefix: str, base: str) -> str:
@@ -37,7 +42,9 @@ def sync_tick() -> None:
     token_service.get_suite_access_token()
 
     kf_api = KfSessionApi()
+    sender = KfMessageSender(kf_api)
     contact_way_api = ContactWayApi()
+    config_cache = KfConfigCache(WELCOME_CACHE_TTL_SECONDS, DEFAULT_WELCOME_REPLY)
 
     pending_list = query_pending_orders()
     if not pending_list:
@@ -93,15 +100,16 @@ def sync_tick() -> None:
             continue
 
         msgid = _make_msgid("auto_", f"{order_no}")
-        payload = {
-            "touser": external_userid,
-            "open_kfid": open_kfid,
-            "msgtype": "text",
-            "text": {"content": f"订单 {order_no} 的入群二维码：{qr_code}"},
-            "msgid": msgid,
-        }
+        sent_qr = False
         try:
-            kf_api.send_message(access_token, payload)
+            sender.send_text_reply(
+                access_token,
+                open_kfid,
+                external_userid,
+                f"订单 {order_no} 的入群二维码：{qr_code}",
+                msgid=msgid,
+                msgid_prefix="",
+            )
             now = datetime.now(timezone.utc)
             group_chat["bound"] = {
                 "external_userid": external_userid,
@@ -112,8 +120,26 @@ def sync_tick() -> None:
             group_chat["updated_at"] = now
             upsert_group_chat(group_chat)
             mark_pending_done(corp_id, order_no, external_userid, result="sent")
+            sent_qr = True
         except Exception:
             continue
+
+        if sent_qr:
+            time.sleep(0.5)
+            config = config_cache.get_config(corp_id, open_kfid)
+            if config and config.get("msgtype") == "msgmenu":
+                payload = config.get("payload")
+                if isinstance(payload, dict):
+                    menu_payload = dict(payload)
+                    menu_payload["head_content"] = "如需其他服务，请点击"
+                    sender.send_reply_message(
+                        access_token,
+                        open_kfid,
+                        external_userid,
+                        ("msgmenu", menu_payload),
+                        msgid=msgid,
+                        msgid_prefix="menu_hint_",
+                    )
 
 
 def sync_messages(corp_id: str, cursor: Optional[str] = None) -> None:
@@ -121,9 +147,4 @@ def sync_messages(corp_id: str, cursor: Optional[str] = None) -> None:
     return None
 
 
-def sync_contacts(corp_id: str) -> None:
-    """拉取通讯录的占位函数。"""
-    return None
-
-
-__all__ = ["sync_tick", "sync_messages", "sync_contacts"]
+__all__ = ["sync_tick", "sync_messages"]

@@ -6,7 +6,7 @@
 - WeCom callbacks: wxcloudrun/services/callback_service.py verifies GET via WXBizMsgCrypt.VerifyURL; POST decrypts XML and dispatches by InfoType/Event/MsgType.
 - Business dispatch: wxcloudrun/services/biz/dispatcher.py routes to handlers registered in wxcloudrun/services/biz/__init__.py.
 - Token flow: wxcloudrun/services/token_service.py uses token_cache (in-memory) plus wecom_client fetchers.
-- Background scheduler: wxcloudrun/services/scheduler.py starts APScheduler and runs sync_service.sync_tick every 5 minutes.
+- Background scheduler: wxcloudrun/services/scheduler/ starts APScheduler and runs sync_service.sync_tick every 5 minutes.
 
 ## Local workflow
 - Install deps: pip install -r requirements.txt
