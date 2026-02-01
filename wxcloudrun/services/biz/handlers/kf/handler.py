@@ -1,5 +1,6 @@
 """企业微信「微信客服」回调业务处理骨架。"""
 import threading
+import time
 from datetime import datetime, timezone
 from typing import Dict, Optional, Tuple, Any
 
@@ -181,14 +182,32 @@ class KfEventHandler(BizHandler):
             return
 
         if not is_order_no:
+            if "人工" in content:
+                self._transfer_to_servicer(access_token, open_kfid, external_userid, msg.get("msgid"))
+                return
             self._sender.send_text_reply(
                 access_token,
                 open_kfid,
                 external_userid,
-                "查询失败，请输入有效的订单号",
+                "查询失败，请输入有效的订单号重新获取",
                 msgid=msg.get("msgid"),
                 msgid_prefix="invalid_",
             )
+            time.sleep(0.5)
+            config = self._config_cache.get_config(corp_id, open_kfid)
+            if config and config.get("msgtype") == "msgmenu":
+                payload = config.get("payload")
+                if isinstance(payload, dict):
+                    menu_payload = dict(payload)
+                    menu_payload["head_content"] = "如需其他服务，请点击"
+                    self._sender.send_reply_message(
+                        access_token,
+                        open_kfid,
+                        external_userid,
+                        ("msgmenu", menu_payload),
+                        msgid=msg.get("msgid"),
+                        msgid_prefix="menu_hint_invalid_",
+                    )
             return
 
         self._order_processor.handle_order(
