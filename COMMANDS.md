@@ -21,7 +21,7 @@ pip install -r requirements.txt
 
 # 退出虚拟环境
 deactivate
-```
+
 
 ## 启动应用（开发）
 ```bash

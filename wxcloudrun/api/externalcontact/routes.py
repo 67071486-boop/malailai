@@ -101,11 +101,11 @@ def api_externalcontact_groupchat_get():
 
     if booster is not None and doc:
         bound = doc.get("bound") if isinstance(doc.get("bound"), dict) else {}
-        booster_list = bound.get("booster")
-        if not isinstance(booster_list, list):
-            booster_list = []
-        booster_list.append({"data": booster, "created_at": datetime.now(timezone.utc)})
-        bound["booster"] = booster_list
+        query_records = bound.get("query_records")
+        if not isinstance(query_records, list):
+            query_records = []
+        query_records.append({"booster": booster, "created_at": datetime.now(timezone.utc)})
+        bound["query_records"] = query_records
         doc["bound"] = bound
         doc["updated_at"] = datetime.now(timezone.utc)
         upsert_group_chat(doc)
