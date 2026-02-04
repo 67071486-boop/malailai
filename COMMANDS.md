@@ -62,8 +62,7 @@ sudo chmod 600 /etc/wecom-prod.env
 ### 3) systemd 服务（生产常驻）
 ```bash
 sudo nano /etc/systemd/system/wecom-prod.service
-```
-```
+
 [Unit]
 Description=wecom-prod
 After=network.target
