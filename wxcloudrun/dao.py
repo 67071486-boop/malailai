@@ -44,8 +44,34 @@ def ensure_indexes():
         db.wecom_tokens.create_index("key", unique=True)
         # kf_welcome：按 corp_id + open_kfid 唯一索引
         db.kf_welcome.create_index([("corp_id", 1), ("open_kfid", 1)], unique=True)
+        # observe_logs：按 task + created_at 查询
+        db.observe_logs.create_index([("category", 1), ("task", 1), ("created_at", -1)])
     except PyMongoError as e:
         logger.info(f"ensure_indexes errorMsg= {e}")
+
+
+def insert_observe_log(
+    *,
+    category: str,
+    task: str,
+    level: str,
+    message: str,
+    context: Optional[dict] = None,
+    created_at: Optional[datetime] = None,
+):
+    """写入观察日志（observe_logs）。"""
+    try:
+        doc = {
+            "category": category,
+            "task": task,
+            "level": level,
+            "message": message,
+            "context": context or {},
+            "created_at": created_at or datetime.utcnow(),
+        }
+        db.observe_logs.insert_one(doc)
+    except PyMongoError as e:
+        logger.info(f"insert_observe_log errorMsg= {e}")
 
 
 def query_counterbyid(id):
@@ -213,6 +239,17 @@ def query_group_chat(chat_id):
         return None
 
 
+def clear_group_chat_join_way(chat_id):
+    """清空客户群 join_way 信息。"""
+    try:
+        db.group_chats.update_one(
+            {"chat_id": chat_id},
+            {"$set": {"join_way": None, "join_way_config_id": None, "updated_at": datetime.utcnow()}},
+        )
+    except PyMongoError as e:
+        logger.info(f"clear_group_chat_join_way errorMsg= {e}")
+
+
 def query_group_chat_by_name(corp_id, name):
     """根据群名称查询客户群记录，可选 corp_id。"""
     if not name:
@@ -287,6 +324,23 @@ def upsert_corp_config(doc):
         db.corp_config_id.update_one(filter_doc, {"$set": doc}, upsert=True)
     except (PyMongoError, ValueError) as e:
         logger.info(f"upsert_corp_config errorMsg= {e}")
+
+
+def query_corp_configs_created_before(expired_before):
+    """查询 created_at 早于指定时间的配置记录。"""
+    try:
+        return list(db.corp_config_id.find({"created_at": {"$lt": expired_before}}))
+    except PyMongoError as e:
+        logger.info(f"query_corp_configs_created_before errorMsg= {e}")
+        return []
+
+
+def delete_corp_config_by_id(config_id):
+    """按 config_id 删除配置记录。"""
+    try:
+        db.corp_config_id.delete_one({"config_id": config_id})
+    except PyMongoError as e:
+        logger.info(f"delete_corp_config_by_id errorMsg= {e}")
 
 
 # ===== 待推送订单二维码（pending_order_qr） =====

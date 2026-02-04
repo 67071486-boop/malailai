@@ -101,13 +101,13 @@ def api_externalcontact_groupchat_get():
 
     if booster is not None and doc:
         bound = doc.get("bound") if isinstance(doc.get("bound"), dict) else {}
-        existing_booster = bound.get("booster")
-        if existing_booster is None:
-            bound["booster"] = booster
-            doc["bound"] = bound
-            doc["updated_at"] = datetime.now(timezone.utc)
-            upsert_group_chat(doc)
-        elif existing_booster != booster:
-            return make_err_response("此订单已被其他人绑定，请联系售后客服")
+        booster_list = bound.get("booster")
+        if not isinstance(booster_list, list):
+            booster_list = []
+        booster_list.append({"data": booster, "created_at": datetime.now(timezone.utc)})
+        bound["booster"] = booster_list
+        doc["bound"] = bound
+        doc["updated_at"] = datetime.now(timezone.utc)
+        upsert_group_chat(doc)
 
     return make_succ_response(doc)

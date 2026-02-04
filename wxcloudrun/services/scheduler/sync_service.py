@@ -10,6 +10,10 @@ from wxcloudrun.dao import (
     mark_pending_done,
     upsert_group_chat,
     delete_expired_pending_orders,
+    query_corp_configs_created_before,
+    delete_corp_config_by_id,
+    clear_group_chat_join_way,
+    insert_observe_log,
 )
 from wxcloudrun.services.service import token_service
 from wxcloudrun.services.wecom.kf.session_manager import KfSessionApi
@@ -35,6 +39,12 @@ def _make_msgid(prefix: str, base: str) -> str:
 
 def sync_tick() -> None:
     """定时扫描待推送订单，若群已创建则发送二维码并绑定。"""
+    insert_observe_log(
+        category="scheduler",
+        task="sync_tick",
+        level="info",
+        message="sync_tick start",
+    )
     now = datetime.utcnow()
     delete_expired_pending_orders(now - timedelta(days=1))
 
@@ -48,8 +58,15 @@ def sync_tick() -> None:
 
     pending_list = query_pending_orders()
     if not pending_list:
+        insert_observe_log(
+            category="scheduler",
+            task="sync_tick",
+            level="info",
+            message="no pending orders",
+        )
         return None
 
+    sent_count = 0
     for item in pending_list:
         corp_id = item.get("corp_id")
         order_no = item.get("order_no")
@@ -121,7 +138,15 @@ def sync_tick() -> None:
             upsert_group_chat(group_chat)
             mark_pending_done(corp_id, order_no, external_userid, result="sent")
             sent_qr = True
+            sent_count += 1
         except Exception:
+            insert_observe_log(
+                category="scheduler",
+                task="sync_tick",
+                level="error",
+                message="send qr failed",
+                context={"corp_id": corp_id, "order_no": order_no, "external_userid": external_userid},
+            )
             continue
 
         if sent_qr:
@@ -141,10 +166,75 @@ def sync_tick() -> None:
                         msgid_prefix="menu_hint_",
                     )
 
+    insert_observe_log(
+        category="scheduler",
+        task="sync_tick",
+        level="info",
+        message="sync_tick done",
+        context={"pending": len(pending_list), "sent": sent_count},
+    )
+
 
 def sync_messages(corp_id: str, cursor: Optional[str] = None) -> None:
     """拉取消息的占位函数，后续实现调用企微消息存档接口。"""
     return None
 
 
-__all__ = ["sync_tick", "sync_messages"]
+def cleanup_expired_corp_configs() -> None:
+    """清理超过 3 天的 corp_config_id 记录，并同步清空 group_chats join_way。"""
+    expired_before = datetime.utcnow() - timedelta(days=3)
+    configs = query_corp_configs_created_before(expired_before)
+    if not configs:
+        insert_observe_log(
+            category="scheduler",
+            task="cleanup_expired_corp_configs",
+            level="info",
+            message="no expired corp_config_id",
+        )
+        return None
+
+    contact_way_api = ContactWayApi()
+    deleted_count = 0
+
+    for item in configs:
+        config_id = item.get("config_id")
+        corp_id = item.get("corp_id")
+        join_way = item.get("join_way")
+        chat_id = item.get("chat_id")
+
+        if not join_way:
+            continue
+        if not config_id or not corp_id:
+            continue
+
+        access_token = token_service.get_corp_access_token(corp_id)
+        if not access_token:
+            continue
+
+        try:
+            contact_way_api.delete_contact_way(access_token, config_id)
+        except Exception:
+            insert_observe_log(
+                category="scheduler",
+                task="cleanup_expired_corp_configs",
+                level="error",
+                message="delete_contact_way failed",
+                context={"corp_id": corp_id, "config_id": config_id},
+            )
+            continue
+
+        delete_corp_config_by_id(config_id)
+        if chat_id:
+            clear_group_chat_join_way(chat_id)
+        deleted_count += 1
+
+    insert_observe_log(
+        category="scheduler",
+        task="cleanup_expired_corp_configs",
+        level="info",
+        message="cleanup done",
+        context={"total": len(configs), "deleted": deleted_count},
+    )
+
+
+__all__ = ["sync_tick", "sync_messages", "cleanup_expired_corp_configs"]

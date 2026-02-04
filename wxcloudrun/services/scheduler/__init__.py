@@ -1,6 +1,7 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
-from .sync_service import sync_tick
+import config
+from .sync_service import sync_tick, cleanup_expired_corp_configs
 
 
 _scheduler = None
@@ -14,6 +15,14 @@ def init_scheduler(app=None) -> None:
 
     scheduler = BackgroundScheduler()
     scheduler.add_job(sync_tick, "interval", minutes=1, id="sync-tick", replace_existing=True)
+    cleanup_interval_seconds = 10 if getattr(config, "DEBUG", False) else 3600
+    scheduler.add_job(
+        cleanup_expired_corp_configs,
+        "interval",
+        seconds=cleanup_interval_seconds,
+        id="cleanup-corp-config",
+        replace_existing=True,
+    )
     scheduler.start()
     _scheduler = scheduler
 

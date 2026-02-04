@@ -176,10 +176,23 @@ def get_suite_access_token(force_refresh: bool = False) -> Optional[str]:
         return None
 
 
-def get_corp_access_token(corp_id: str, permanent_code: str, force_refresh: bool = False) -> Optional[str]:
+def get_corp_access_token(
+    corp_id: str,
+    permanent_code: Optional[str] = None,
+    force_refresh: bool = False,
+) -> Optional[str]:
     """根据 corp_id/permanent_code 获取企业 access_token（带缓存）。
+    permanent_code 可不传；若缺失则根据 corp_id 查询 corp_auth 获取。
     force_refresh=True 时跳过缓存，直接刷新。
     """
+    if not corp_id:
+        return None
+
+    if not permanent_code:
+        corp_auth = dao.query_corp_auth(corp_id)
+        permanent_code = corp_auth.get("permanent_code") if corp_auth else None
+        if not permanent_code:
+            return None
     if not force_refresh:
         token = get_corp_access_token_cached(corp_id)
         if token:
