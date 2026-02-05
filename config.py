@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 # 加载环境变量
 load_dotenv()
 
-# 是否开启debug模式
-DEBUG = False
+# 是否开启debug模式（从环境变量读取，默认 False）
+DEBUG = os.environ.get("DEBUG", "false").strip().lower() in {"1", "true", "yes", "y", "on"}
 
 # MongoDB 数据库（可通过环境变量覆盖）
 MONGO_URI: str = os.environ.get(

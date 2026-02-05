@@ -216,7 +216,7 @@ class KfEventHandler(BizHandler):
             open_kfid,
             external_userid,
             order_no,
-            msgid=msg.get("msgid"),
+            msgid=str(msg.get("msgid") or ""),
         )
 
     def _handle_event(self, msg: Dict, payload: Optional[Dict[str, Any]], access_token: str, corp_id: str) -> None:
