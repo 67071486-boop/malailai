@@ -1,3 +1,5 @@
+# malailai（码上来）
+
 # wxcloudrun-flask
 [![GitHub license](https://img.shields.io/github/license/WeixinCloud/wxcloudrun-express)](https://github.com/WeixinCloud/wxcloudrun-express)
 ![GitHub package.json dependency version (prod)](https://img.shields.io/badge/python-3.7.3-green)
@@ -189,4 +191,4 @@ curl -X POST https://<云托管服务域名>/wxwork/send_message \
 
 ## License
 
-[MIT](./LICENSE)
+著作权及使用限制见仓库根目录 [LICENSE](./LICENSE)。
