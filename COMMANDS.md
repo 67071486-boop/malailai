@@ -1,7 +1,50 @@
-git clone git@github.com:67071486-boop/wecom-development.git
+## Ubuntu 常用指令（本仓库 / 服务器）
 
-git pull origin main 拉取远程仓库同步
+下文默认你在 **Ubuntu 服务器**（如 `122.51.64.116`）上操作；Python 虚拟环境、systemd、Nginx 等完整步骤见后面章节。
+
+### 登录服务器
+
+```bash
+ssh ubuntu@122.51.64.116
+```
+
+需本机已配置 SSH 公钥，才能做到免密登录。
+
+### 首次克隆仓库（服务器或本机均可）
+
+```bash
+git clone git@github.com:67071486-boop/wecom-development.git
+cd wecom-development
+```
+
+### 日常同步代码（服务器上）
+
+```bash
+cd /你的项目目录   # 生产示例：/opt/wecom-prod（见「生产环境详细流程」）
+git pull origin main
+```
+
+若 `requirements.txt` 有变更，先 `source .venv/bin/activate` 再 `pip install -r requirements.txt`。
+
+### 发布改动后的典型流程
+
+1. **本机**：改代码 → `git add` → `git commit` → `git push origin main`
+2. **服务器**：`git pull origin main` →（必要时装依赖）→ `sudo systemctl restart wecom-prod` → `sudo systemctl status wecom-prod`
+
+本机提交示例：
+
+```bash
+git add -A
 git commit -m "描述本次改动"
+git push origin main
+```
+
+### 快速看服务是否在跑
+
+```bash
+sudo systemctl status wecom-prod
+sudo journalctl -u wecom-prod -n 50 --no-pager
+```
 
 ## 前提 / 安装基础工具
 （首次在服务器上运行）
