@@ -34,9 +34,9 @@ git pull origin main
 本机提交示例：
 
 ```bash
-git add -A
+git add -A 暂存更改
 git commit -m "描述本次改动"
-git push origin main
+git push origin main 打包提交
 ```
 
 ### 快速看服务是否在跑

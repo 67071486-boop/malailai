@@ -1,21 +1,29 @@
-MIT License
+Copyright (c) 2026 河南素晴娱乐有限公司. All Rights Reserved.
 
-Copyright (c) 2021 Tencent
+本软件及相关文档（以下简称「本软件」）的著作权及其他知识产权归河南素晴娱乐有限公司所有。
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+未经河南素晴娱乐有限公司事先书面许可，任何单位或个人不得对本软件进行下列行为，亦不得授权他人进行下列行为：
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+- 复制、下载、保存本软件的全部或部分；
+- 修改、改编、翻译、反编译、反汇编或以其他方式衍生本软件；
+- 以销售、出租、许可、再许可、分发、传播、公开展示等方式向任何第三方提供本软件或其副本；
+- 将本软件用于任何商业或非商业用途（经书面授权的除外）。
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+违反上述限制的，河南素晴娱乐有限公司保留依法追究法律责任的权利。
+
+本软件按「现状」提供，不作任何明示或默示的保证。
+
+---
+
+Copyright (c) 2026 Henan Suqing Entertainment Co., Ltd. All Rights Reserved.
+
+This software and related documentation (the "Software") are the proprietary property of Henan Suqing Entertainment Co., Ltd.
+
+No person or entity may, without prior written permission from Henan Suqing Entertainment Co., Ltd.:
+
+- copy, download, or store the Software in whole or in part;
+- modify, adapt, translate, reverse engineer, decompile, disassemble, or create derivative works from the Software;
+- sell, rent, license, sublicense, distribute, publish, or otherwise make the Software available to any third party;
+- use the Software for any purpose (except as expressly authorized in writing).
+
+Unauthorized use may result in civil and/or criminal liability. The Software is provided "as is" without warranty of any kind.
