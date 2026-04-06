@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_cors import CORS # type: ignore
 import config
-from wxcloudrun.dao import ensure_indexes
+from wecom.dao import ensure_indexes
 
 # 初始化web应用
 app = Flask(__name__, instance_relative_config=True)
@@ -20,10 +20,10 @@ CORS(
 )
 
 # 加载控制器
-from wxcloudrun import views
-from wxcloudrun import wxwork
-from wxcloudrun.api import api_bp
-from wxcloudrun.services.scheduler import init_scheduler
+from wecom import views
+from wecom import wxwork
+from wecom.api import api_bp
+from wecom.services.scheduler import init_scheduler
 
 # 注册企业微信蓝图
 app.register_blueprint(wxwork.wxwork_bp)

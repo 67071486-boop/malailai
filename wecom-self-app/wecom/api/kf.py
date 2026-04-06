@@ -1,19 +1,19 @@
 from flask import request
 
-from wxcloudrun.api import api_bp
-from wxcloudrun.api.helpers import (
+from wecom.api import api_bp
+from wecom.api.helpers import (
     _as_list,
     _missing_token_response,
     _normalize_int_list,
     _require_str_param,
     _resolve_access_token,
 )
-from wxcloudrun.dao import query_kf_welcome, upsert_kf_welcome
-from wxcloudrun.model import new_kf_welcome
-from wxcloudrun.response import make_err_response, make_succ_response
-from wxcloudrun.services.wecom.kf.account_manager import KfAccountApi
-from wxcloudrun.services.wecom.kf.servicer_manager import KfStaffApi
-from wxcloudrun.services.wecom_client import WeComApiError
+from wecom.dao import query_kf_welcome, upsert_kf_welcome
+from wecom.model import new_kf_welcome
+from wecom.response import make_err_response, make_succ_response
+from wecom.services.wecom.kf.account_manager import KfAccountApi
+from wecom.services.wecom.kf.servicer_manager import KfStaffApi
+from wecom.services.wecom_client import WeComApiError
 
 kf_account_api = KfAccountApi()
 kf_staff_api = KfStaffApi()

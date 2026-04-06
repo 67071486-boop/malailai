@@ -2,7 +2,7 @@ import threading
 from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, Optional, Tuple
 
-from wxcloudrun.dao import query_kf_welcome
+from wecom.dao import query_kf_welcome
 
 
 class KfConfigCache:

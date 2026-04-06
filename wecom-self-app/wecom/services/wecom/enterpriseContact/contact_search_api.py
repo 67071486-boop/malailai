@@ -2,7 +2,7 @@
 from typing import Any, Dict, Optional
 
 from ..base import BaseClient, WeComApiError
-from wxcloudrun.services.service import token_service
+from wecom.services.service import token_service
 
 
 class EnterpriseContactApi(BaseClient):

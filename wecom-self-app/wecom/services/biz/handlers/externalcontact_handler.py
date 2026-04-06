@@ -3,9 +3,9 @@ from datetime import datetime, timezone
 from typing import Dict, Optional
 
 from ..dispatcher import BizHandler
-from wxcloudrun.services.wecom.externalcontact.group_chat_manager import ContactGroupChatApi
-from wxcloudrun.services.service import token_service
-from wxcloudrun.dao import query_corp_auth, query_group_chat, upsert_group_chat, mark_group_chat_dismissed
+from wecom.services.wecom.externalcontact.group_chat_manager import ContactGroupChatApi
+from wecom.services.service import token_service
+from wecom.dao import query_corp_auth, query_group_chat, upsert_group_chat, mark_group_chat_dismissed
 
 
 class ContactEventHandler(BizHandler):

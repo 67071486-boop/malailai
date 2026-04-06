@@ -3,8 +3,8 @@ from typing import Any, Dict, Optional
 from urllib.parse import quote
 
 import config
-from wxcloudrun.services.service import token_service
-from wxcloudrun.services.wecom.base import BaseClient, WeComApiError
+from wecom.services.service import token_service
+from wecom.services.wecom.base import BaseClient, WeComApiError
 
 
 def build_oauth2_url(

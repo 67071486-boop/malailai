@@ -1,5 +1,5 @@
 """兼容入口：沿用 wecom_client 导出的 API，但内部拆分为子模块。"""
-from wxcloudrun.services.wecom import (
+from wecom.services.wecom import (
     BaseClient,
     WeComApiError,
     SuiteApi,

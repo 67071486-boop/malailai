@@ -3,7 +3,7 @@ import hashlib
 import time
 from datetime import datetime, timezone, timedelta
 
-from wxcloudrun.dao import (
+from wecom.dao import (
     query_pending_orders,
     query_group_chat_by_name,
     query_corp_auth,
@@ -15,11 +15,11 @@ from wxcloudrun.dao import (
     clear_group_chat_join_way,
     insert_observe_log,
 )
-from wxcloudrun.services.service import token_service
-from wxcloudrun.services.wecom.kf.session_manager import KfSessionApi
-from wxcloudrun.services.wecom.externalcontact.contact_way_manager import ContactWayApi
-from wxcloudrun.services.biz.handlers.kf.config_cache import KfConfigCache
-from wxcloudrun.services.biz.handlers.kf.sender import KfMessageSender
+from wecom.services.service import token_service
+from wecom.services.wecom.kf.session_manager import KfSessionApi
+from wecom.services.wecom.externalcontact.contact_way_manager import ContactWayApi
+from wecom.services.biz.handlers.kf.config_cache import KfConfigCache
+from wecom.services.biz.handlers.kf.sender import KfMessageSender
 
 # 这里放置主动同步实现（订单二维码自动推送）
 DEFAULT_WELCOME_REPLY = "您好！我是群码自助机器人，请把订单号发给我获取二维码"

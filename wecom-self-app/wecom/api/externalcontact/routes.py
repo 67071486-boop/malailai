@@ -2,11 +2,11 @@ from datetime import datetime, timezone
 
 from flask import request
 
-from wxcloudrun.api import api_bp
-from wxcloudrun.api.helpers import _resolve_access_token
-from wxcloudrun.dao import query_group_chat, query_group_chat_by_name, upsert_group_chat
-from wxcloudrun.response import make_err_response, make_succ_response
-from wxcloudrun.services.wecom.externalcontact.contact_way_manager import ContactWayApi
+from wecom.api import api_bp
+from wecom.api.helpers import _resolve_access_token
+from wecom.dao import query_group_chat, query_group_chat_by_name, upsert_group_chat
+from wecom.response import make_err_response, make_succ_response
+from wecom.services.wecom.externalcontact.contact_way_manager import ContactWayApi
 
 
 def _parse_int(value, default):

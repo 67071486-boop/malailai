@@ -5,11 +5,11 @@ from datetime import datetime, timezone
 from typing import Dict, Optional, Tuple, Any
 
 from ...dispatcher import BizHandler
-from wxcloudrun.dao import query_corp_auth
-from wxcloudrun.services.service import token_service
-from wxcloudrun.services.wecom.kf.session_manager import KfSessionApi
-from wxcloudrun.services.wecom.kf.servicer_manager import KfStaffApi
-from wxcloudrun.services.wecom.externalcontact.contact_way_manager import ContactWayApi
+from wecom.dao import query_corp_auth
+from wecom.services.service import token_service
+from wecom.services.wecom.kf.session_manager import KfSessionApi
+from wecom.services.wecom.kf.servicer_manager import KfStaffApi
+from wecom.services.wecom.externalcontact.contact_way_manager import ContactWayApi
 from .config_cache import KfConfigCache
 from .cursor_store import KfCursorStore
 from .order_flow import KfOrderProcessor

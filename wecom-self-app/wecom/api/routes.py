@@ -5,8 +5,8 @@ from datetime import datetime, timezone
 
 from flask import Response, request
 
-from wxcloudrun.api import api_bp
-from wxcloudrun.dao import (
+from wecom.api import api_bp
+from wecom.dao import (
     delete_counterbyid,
     insert_counter,
     query_all_corp_auths,
@@ -18,13 +18,13 @@ from wxcloudrun.dao import (
     update_corp_auth,
     update_counterbyid,
 )
-from wxcloudrun.model import new_counter
-from wxcloudrun.response import make_err_response, make_succ_empty_response, make_succ_response
-from wxcloudrun.services.service import token_service
-from wxcloudrun.services.wecom.kf.account_manager import KfAccountApi
-from wxcloudrun.services.wecom.kf.servicer_manager import KfStaffApi
-from wxcloudrun.services.wecom.media_api import get_temp_media, upload_temp_media
-from wxcloudrun.services.wecom_client import WeComApiError, fetch_auth_info, get_contact_manager
+from wecom.model import new_counter
+from wecom.response import make_err_response, make_succ_empty_response, make_succ_response
+from wecom.services.service import token_service
+from wecom.services.wecom.kf.account_manager import KfAccountApi
+from wecom.services.wecom.kf.servicer_manager import KfStaffApi
+from wecom.services.wecom.media_api import get_temp_media, upload_temp_media
+from wecom.services.wecom_client import WeComApiError, fetch_auth_info, get_contact_manager
 
 kf_account_api = KfAccountApi()
 kf_staff_api = KfStaffApi()

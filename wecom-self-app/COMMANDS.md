@@ -117,7 +117,7 @@ User=ubuntu
 Group=ubuntu
 WorkingDirectory=/opt/wecom-prod
 EnvironmentFile=/etc/wecom-prod.env
-ExecStart=/opt/wecom-prod/.venv/bin/gunicorn -w 2 -b 127.0.0.1:8080 "wxcloudrun:app"
+ExecStart=/opt/wecom-prod/.venv/bin/gunicorn -w 2 -b 127.0.0.1:8080 "wecom:app"
 Restart=always
 
 [Install]
@@ -174,7 +174,7 @@ sudo journalctl -u wecom-prod -f
 ## 生产环境注意事项（本项目）
 - 回调与鉴权依赖环境变量（如 WXWORK_TOKEN、WXWORK_ENCODING_AES_KEY），务必与企业微信后台一致。
 - 生产建议使用 Nginx 反代 + HTTPS，避免直接暴露 8080。
-- `wxcloudrun/services/scheduler.py` 会启动定时任务，避免用 Flask 自动重载模式（生产用 systemd/gunicorn）。
+- `wecom/services/scheduler/` 会启动定时任务，避免用 Flask 自动重载模式（生产用 systemd/gunicorn）。
 - MongoDB 连接使用 `MONGO_URI`，不要把真实连接串写入仓库。
 - 若服务异常重启或返回 502，先看 systemd 日志与 Nginx 错误日志。
 
@@ -194,7 +194,7 @@ bash
 tail -f app.log
 
 # systemd 服务日志
-sudo journalctl -u wxcloudrun -f
+sudo journalctl -u wecom-prod -f
 
 # 查看 Flask 运行情况（开发）
 ps aux | grep python
@@ -206,7 +206,7 @@ ps aux | grep python
 - 删除虚拟环境：`rm -rf .venv`
 
 ## 注意事项
-- `wxcloudrun/services/scheduler.py` 使用 APScheduler，开发时避免 Flask 自动重载导致 scheduler 重复启动（生产用 gunicorn/systemd）。
+- `wecom/services/scheduler/` 使用 APScheduler，开发时避免 Flask 自动重载导致 scheduler 重复启动（生产用 gunicorn/systemd）。
 - 配置项与密钥必须通过环境变量或安全配置管理，不要把密钥提交到 Git。
 
 

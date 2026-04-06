@@ -2,7 +2,7 @@
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional, List
 from ..base import BaseClient, WeComApiError
-from wxcloudrun.dao import upsert_corp_config, upsert_group_chat, query_group_chat
+from wecom.dao import upsert_corp_config, upsert_group_chat, query_group_chat
 
 
 class ContactWayApi(BaseClient):

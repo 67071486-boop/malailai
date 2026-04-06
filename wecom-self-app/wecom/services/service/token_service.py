@@ -1,7 +1,7 @@
 import logging
 from typing import Optional, Dict, Any
-from wxcloudrun import dao
-from wxcloudrun.services.wecom.base import BaseClient, WeComApiError
+from wecom import dao
+from wecom.services.wecom.base import BaseClient, WeComApiError
 import config
 
 # 企微配置（全部从环境变量读取）
@@ -170,7 +170,7 @@ def get_suite_access_token(force_refresh: bool = False) -> Optional[str]:
         fetch_suite_access_token(ticket, WXWORK_SUITE_ID, WXWORK_SUITE_SECRET)
         return get_suite_access_token_cached()
     except Exception:
-        logging.getLogger("wxcloudrun.token_service").exception(
+        logging.getLogger("wecom.token_service").exception(
             "get_suite_access_token failed for ticket=%s", ticket
         )
         return None
@@ -202,7 +202,7 @@ def get_corp_access_token(
         fetch_corp_access_token(corp_id, permanent_code, WXWORK_SUITE_ID)
         return get_corp_access_token_cached(corp_id)
     except Exception:
-        logging.getLogger("wxcloudrun.token_service").exception(
+        logging.getLogger("wecom.token_service").exception(
             "Exception while get_corp_access_token for corp_id=%s", corp_id
         )
         return None
@@ -224,7 +224,7 @@ def get_provider_access_token(force_refresh: bool = False) -> Optional[str]:
         fetch_provider_access_token(WXWORK_CORP_ID, WXWORK_PROVIDER_SECRET)
         return get_provider_access_token_cached()
     except Exception:
-        logging.getLogger("wxcloudrun.token_service").exception(
+        logging.getLogger("wecom.token_service").exception(
             "get_provider_access_token failed for corp_id=%s", WXWORK_CORP_ID
         )
         return None

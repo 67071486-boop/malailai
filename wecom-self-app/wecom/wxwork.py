@@ -1,11 +1,11 @@
 from urllib.parse import quote
-from wxcloudrun.services.wecom_client import WeComApiError
+from wecom.services.wecom_client import WeComApiError
 from flask import Blueprint, request, redirect, url_for, session
 from flask.typing import ResponseReturnValue
-from wxcloudrun.services.service.callback_service import handle_data_callback, handle_command_callback
-from wxcloudrun.services.service.token_service import get_suite_access_token
-from wxcloudrun.services.wecom.auth.web_oauth import build_oauth2_url, get_user_info
-from wxcloudrun.response import make_succ_response, make_err_response
+from wecom.services.service.callback_service import handle_data_callback, handle_command_callback
+from wecom.services.service.token_service import get_suite_access_token
+from wecom.services.wecom.auth.web_oauth import build_oauth2_url, get_user_info
+from wecom.response import make_succ_response, make_err_response
 import config
 
 wxwork_bp = Blueprint("wxwork", __name__, url_prefix="/wxwork")

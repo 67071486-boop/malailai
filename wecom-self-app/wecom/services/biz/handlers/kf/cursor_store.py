@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
 from typing import Optional
 
-from wxcloudrun.dao import query_kf_cursor, upsert_kf_cursor
-from wxcloudrun.model import new_kf_cursor
+from wecom.dao import query_kf_cursor, upsert_kf_cursor
+from wecom.model import new_kf_cursor
 
 
 class KfCursorStore:

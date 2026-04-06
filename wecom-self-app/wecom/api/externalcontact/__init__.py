@@ -1,1 +1,1 @@
-from wxcloudrun.api.externalcontact import routes  # noqa: F401
+from wecom.api.externalcontact import routes  # noqa: F401

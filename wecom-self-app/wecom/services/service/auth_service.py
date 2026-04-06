@@ -2,9 +2,9 @@ from threading import Thread
 from typing import Optional, Tuple
 import traceback
 
-from wxcloudrun.dao import query_corp_auth, insert_corp_auth, update_corp_auth
-from wxcloudrun.model import new_corp_auth
-from wxcloudrun.services.wecom import get_suite_api, WeComApiError, fetch_auth_info
+from wecom.dao import query_corp_auth, insert_corp_auth, update_corp_auth
+from wecom.model import new_corp_auth
+from wecom.services.wecom import get_suite_api, WeComApiError, fetch_auth_info
 
 
 def get_permanent_code(auth_code: str) -> Optional[Tuple[str, dict]]:

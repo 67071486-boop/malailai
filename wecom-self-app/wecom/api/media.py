@@ -3,11 +3,11 @@ import tempfile
 
 from flask import Response, request
 
-from wxcloudrun.api import api_bp
-from wxcloudrun.api.helpers import _missing_token_response, _resolve_access_token
-from wxcloudrun.response import make_err_response, make_succ_response
-from wxcloudrun.services.wecom.media_api import get_temp_media, upload_temp_media
-from wxcloudrun.services.wecom_client import WeComApiError
+from wecom.api import api_bp
+from wecom.api.helpers import _missing_token_response, _resolve_access_token
+from wecom.response import make_err_response, make_succ_response
+from wecom.services.wecom.media_api import get_temp_media, upload_temp_media
+from wecom.services.wecom_client import WeComApiError
 
 
 @api_bp.route("/media/upload_temp", methods=["POST"])

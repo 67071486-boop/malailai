@@ -5,13 +5,13 @@ import tempfile
 import requests
 from typing import Optional
 
-from wxcloudrun.dao import (
+from wecom.dao import (
     query_group_chat_by_name,
     upsert_pending_order,
     mark_pending_done,
     upsert_group_chat,
 )
-from wxcloudrun.model import new_pending_order
+from wecom.model import new_pending_order
 
 
 class KfOrderProcessor:
@@ -188,7 +188,7 @@ class KfOrderProcessor:
             fd, tmp_path = tempfile.mkstemp(prefix="kf_qr_", suffix=suffix)
             with os.fdopen(fd, "wb") as f:
                 f.write(resp.content)
-            from wxcloudrun.services.wecom.media_api import upload_temp_media
+            from wecom.services.wecom.media_api import upload_temp_media
 
             data = upload_temp_media(access_token, "image", tmp_path)
             return data.get("media_id")

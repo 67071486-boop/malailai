@@ -6,9 +6,9 @@ from datetime import datetime, timezone
 
 from flask import request
 
-from wxcloudrun.api import api_bp
-from wxcloudrun.api.helpers import _parse_int
-from wxcloudrun.dao import (
+from wecom.api import api_bp
+from wecom.api.helpers import _parse_int
+from wecom.dao import (
     delete_counterbyid,
     insert_counter,
     query_all_corp_auths,
@@ -21,11 +21,11 @@ from wxcloudrun.dao import (
     update_corp_auth,
     update_counterbyid,
 )
-from wxcloudrun.model import new_counter
-from wxcloudrun.response import make_err_response, make_succ_empty_response, make_succ_response
-from wxcloudrun.services.service import token_service
-from wxcloudrun.services.wecom_client import WeComApiError, fetch_auth_info
-from wxcloudrun.services.wecom import fetch_agent_list
+from wecom.model import new_counter
+from wecom.response import make_err_response, make_succ_empty_response, make_succ_response
+from wecom.services.service import token_service
+from wecom.services.wecom_client import WeComApiError, fetch_auth_info
+from wecom.services.wecom import fetch_agent_list
 
 
 @api_bp.route("/count", methods=["POST"])

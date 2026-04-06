@@ -1,10 +1,10 @@
 from flask import request
 
-from wxcloudrun.api import api_bp
-from wxcloudrun.api.helpers import _require_str_param
-from wxcloudrun.response import make_err_response, make_succ_response
-from wxcloudrun.services.wecom.enterpriseContact import get_enterprise_contact_api
-from wxcloudrun.services.wecom_client import WeComApiError
+from wecom.api import api_bp
+from wecom.api.helpers import _require_str_param
+from wecom.response import make_err_response, make_succ_response
+from wecom.services.wecom.enterpriseContact import get_enterprise_contact_api
+from wecom.services.wecom_client import WeComApiError
 
 
 enterprise_contact_api = get_enterprise_contact_api()

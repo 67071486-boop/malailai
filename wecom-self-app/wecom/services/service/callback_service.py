@@ -3,9 +3,9 @@ import re
 import xmltodict # type: ignore
 from flask import Request, jsonify
 from flask.typing import ResponseReturnValue
-from wxcloudrun.wechat_official.WXBizMsgCrypt import WXBizMsgCrypt
+from wecom.wechat_official.WXBizMsgCrypt import WXBizMsgCrypt
 
-from wxcloudrun.services.service.token_service import (
+from wecom.services.service.token_service import (
     WXWORK_CORP_ID,
     WXWORK_SUITE_ID,
     WXWORK_TOKEN,
@@ -13,8 +13,8 @@ from wxcloudrun.services.service.token_service import (
     get_suite_access_token,
     save_suite_ticket,
 )
-from wxcloudrun.services.service.auth_service import async_get_permanent_code
-from wxcloudrun.services.biz import biz_dispatcher
+from wecom.services.service.auth_service import async_get_permanent_code
+from wecom.services.biz import biz_dispatcher
 
 
 def _validate_params(params, required):

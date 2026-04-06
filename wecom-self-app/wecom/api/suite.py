@@ -1,10 +1,10 @@
 from flask import request
 
-from wxcloudrun.api import api_bp
-from wxcloudrun.response import make_err_response, make_succ_response
+from wecom.api import api_bp
+from wecom.response import make_err_response, make_succ_response
 import config
-from wxcloudrun.services.wecom.auth.web_oauth import build_oauth2_url, get_user_detail, get_user_info
-from wxcloudrun.services.wecom_client import WeComApiError
+from wecom.services.wecom.auth.web_oauth import build_oauth2_url, get_user_detail, get_user_info
+from wecom.services.wecom_client import WeComApiError
 
 
 @api_bp.route("/suite/oauth2_url", methods=["GET"])
