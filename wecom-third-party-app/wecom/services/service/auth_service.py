@@ -1,0 +1,78 @@
+from threading import Thread
+from typing import Optional, Tuple
+import traceback
+
+from wxcloudrun.dao import query_corp_auth, insert_corp_auth, update_corp_auth
+from wxcloudrun.model import new_corp_auth
+from wxcloudrun.services.wecom import get_suite_api, WeComApiError, fetch_auth_info
+
+
+def get_permanent_code(auth_code: str) -> Optional[Tuple[str, dict]]:
+    """通过临时授权码获取永久授权码并落库。"""
+    suite = get_suite_api()
+    try:
+        result = suite.get_permanent_code(auth_code)
+    except WeComApiError as e:
+        print("[auth_service] WeCom API 错误 获取永久授权码失败:", e, flush=True)
+        return None
+    except Exception as e:
+        print("[auth_service] 调用 wecom_client.get_permanent_code 异常:", e, flush=True)
+        traceback.print_exc()
+        return None
+
+    permanent_code = result.get("permanent_code")
+    auth_corp_info = result.get("auth_corp_info", {})
+    corp_id = auth_corp_info.get("corpid")
+
+    corp_auth = query_corp_auth(corp_id)
+    if corp_auth:
+        corp_auth["permanent_code"] = permanent_code
+        # 保存 basic auth_corp_info（对象存储），随后尝试拉取 v2 授权信息覆盖保存
+        corp_auth["auth_corp_info"] = auth_corp_info
+        update_corp_auth(corp_auth)
+    else:
+        corp_auth = new_corp_auth(
+            corp_id=corp_id,
+            permanent_code=permanent_code,
+            auth_corp_info=auth_corp_info,
+        )
+        insert_corp_auth(corp_auth)
+
+    # 尝试调用 v2 接口获取更完整的授权信息并覆盖保存（非阻塞失败）
+    try:
+        v2 = fetch_auth_info(corp_id, permanent_code)
+        try:
+            # 把 v2 的整个响应存为 auth_corp_info（覆盖旧数据），便于后续使用
+            corp_auth_db = query_corp_auth(corp_id)
+            if corp_auth_db:
+                corp_auth_db["auth_corp_info"] = v2
+                update_corp_auth(corp_auth_db)
+                print(f"[auth_service] 已拉取并保存 v2 授权信息 corp_id={corp_id}", flush=True)
+        except Exception as e:
+            print("[auth_service] 保存 v2 授权信息失败:", e, flush=True)
+    except Exception as e:
+        print("[auth_service] fetch_auth_info 失败（可忽略）:", e, flush=True)
+
+    # Print success, mask most of permanent_code (keep last 6 chars)
+    try:
+        masked = f"****{permanent_code[-6:]}" if permanent_code else "(none)"
+    except Exception:
+        masked = "(masked)"
+    print(f"[auth_service] 已获取并保存永久授权码 corp_id={corp_id} code={masked}", flush=True)
+    return permanent_code, auth_corp_info
+    
+
+
+def async_get_permanent_code(auth_code: str) -> None:
+    """异步拉取永久授权码，避免阻塞回调。"""
+
+    def _worker(code: str):
+        try:
+            get_permanent_code(code)
+        except Exception:
+            pass
+
+    Thread(target=_worker, args=(auth_code,), daemon=True).start()
+
+
+__all__ = ["get_permanent_code", "async_get_permanent_code"]
