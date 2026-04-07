@@ -1,5 +1,3 @@
-这是分支 企微自建应用
-自建应用项目的更改记录
 ## Ubuntu 常用指令（本仓库 / 服务器）
 
 下文默认你在 **Ubuntu 服务器**（如 `122.51.64.116`）上操作；Python 虚拟环境、systemd、Nginx 等完整步骤见后面章节。
@@ -71,7 +69,7 @@ deactivate
 ## 启动应用（开发）
 ```bash
 # run.py 接受 host 和 port
-python3 run.py 0.0.0.0 8081
+python3 run.py 0.0.0.0 8083
 
 
 ## 生产环境详细流程（本项目推荐）
@@ -153,7 +151,6 @@ server {
 }
 ```
 ```bash
-sudo ln -s /etc/nginx/sites-available/wecom.suqing.chat /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
 ```

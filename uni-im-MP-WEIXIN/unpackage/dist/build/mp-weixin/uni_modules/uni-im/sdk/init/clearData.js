@@ -1,0 +1,1 @@
+"use strict";const t=require("../state/index.js");exports.clearData=()=>{t.state.conversation.reset(),t.state.notification.reset(),t.state.friend.reset(),t.state.group.reset(),t.state.currentConversationId=!1};

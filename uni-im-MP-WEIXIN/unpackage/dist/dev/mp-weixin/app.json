@@ -1,0 +1,34 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/workbench/qrcode/qrcode"
+  ],
+  "subPackages": [
+    {
+      "root": "uni_modules/uni-id-pages/pages",
+      "pages": [
+        "userinfo/userinfo",
+        "login/login-withoutpwd",
+        "login/login-withpwd",
+        "userinfo/deactivate/deactivate",
+        "userinfo/bind-mobile/bind-mobile",
+        "login/login-smscode",
+        "register/register",
+        "retrieve/retrieve",
+        "common/webview/webview",
+        "userinfo/change_pwd/change_pwd",
+        "register/register-by-email",
+        "retrieve/retrieve-by-email",
+        "userinfo/set-pwd/set-pwd"
+      ]
+    }
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "素晴服务",
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8"
+  },
+  "permission": {},
+  "usingComponents": {}
+}

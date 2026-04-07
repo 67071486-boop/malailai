@@ -1,0 +1,1 @@
+"use strict";const e=require("../../../../common/vendor.js");exports.onSocketStateChange=o=>{let n=0;e.index.onSocketOpen((()=>{console.log("WebSocket 连接已打开！"),n++,o(!0,n)})),e.index.onSocketClose((()=>{console.log("WebSocket 已关闭！"),o(!1,n)}))};

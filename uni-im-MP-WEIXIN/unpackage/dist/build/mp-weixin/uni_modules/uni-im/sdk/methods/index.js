@@ -1,0 +1,1 @@
+"use strict";const s=require("./users.js"),e=require("./notification.js"),i=require("./extensions.js"),t=require("./msgTypes.js"),n={users:s.$users,notification:e.notification,extensions:i.$extensions,msgTypes:t.msgTypes};exports.methods=n;

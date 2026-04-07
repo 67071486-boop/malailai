@@ -1,0 +1,1 @@
+"use strict";require("../state/index.js");const e=require("./extensions.js");let s={};const t={registerTypes(){let t=e.$extensions.invokeExts("msg-type-register");for(let e of t)s[e.type]&&console.error("重复注册的消息类型："+e.type),s[e.type]=e},get:e=>s[e]};exports.msgTypes=t;

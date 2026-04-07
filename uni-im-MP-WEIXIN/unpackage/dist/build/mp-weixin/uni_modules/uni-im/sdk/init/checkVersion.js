@@ -1,0 +1,1 @@
+"use strict";const e=require("../../../../common/vendor.js");exports.checkVersion=n=>{if(e.index.getStorageSync("uni-im-storage-version")!=n){e.index.getStorageInfoSync().keys.forEach((n=>{0===n.indexOf("uni-im")&&e.index.removeStorageSync(n)})),e.index.setStorageSync("uni-im-storage-version",n)}};
