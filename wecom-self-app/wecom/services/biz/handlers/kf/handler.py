@@ -5,8 +5,8 @@ from datetime import datetime, timezone
 from typing import Dict, Optional, Tuple, Any
 
 from ...dispatcher import BizHandler
-from wecom.dao import query_corp_auth
 from wecom.services.service import token_service
+import config
 from wecom.services.wecom.kf.session_manager import KfSessionApi
 from wecom.services.wecom.kf.servicer_manager import KfStaffApi
 from wecom.services.wecom.externalcontact.contact_way_manager import ContactWayApi
@@ -52,12 +52,7 @@ class KfEventHandler(BizHandler):
             print("[biz.kf] missing corp_id", xml, flush=True)
             return
 
-        corp_auth = query_corp_auth(corp_id)
-        if not corp_auth or not corp_auth.get("permanent_code"):
-            print("[biz.kf] corp_auth not found for", corp_id, flush=True)
-            return
-
-        access_token = token_service.get_corp_access_token(corp_id, corp_auth["permanent_code"])
+        access_token = token_service.get_corp_access_token(corp_id or config.WXWORK_CORP_ID)
         if not access_token:
             print("[biz.kf] access_token unavailable for", corp_id, flush=True)
             return

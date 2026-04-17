@@ -1,7 +1,8 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/workbench/qrcode/qrcode"
+    "pages/workbench/qrcode/qrcode",
+    "pages/workbench/groupList/groupList"
   ],
   "subPackages": [
     {

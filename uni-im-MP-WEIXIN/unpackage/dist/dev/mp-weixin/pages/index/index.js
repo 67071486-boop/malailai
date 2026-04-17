@@ -25,7 +25,7 @@ const _sfc_main = {
           title: "自助查码",
           path: "/pages/workbench/qrcode/qrcode",
           srcName: "qrCode"
-        }
+        },
         // {
         // 	title: '付款专用',
         // 	path: '/pages/workbench/pay/pay',
@@ -36,11 +36,11 @@ const _sfc_main = {
         // 	path: '/uni_modules/uni-im/pages/contacts/addPeopleGroups/addPeopleGroups',
         // 	srcName: 'search'
         // },
-        // {
-        // 	title: '我的群聊',
-        // 	path: '/uni_modules/uni-im/pages/contacts/groupList/groupList',
-        // 	srcName: 'group'
-        // },
+        {
+          title: "我的群聊",
+          path: "/pages/workbench/groupList/groupList",
+          srcName: "group"
+        }
         // {
         // 	title: '创建群聊',
         // 	path: '/uni_modules/uni-im/pages/contacts/createGroup/createGroup',
@@ -72,21 +72,23 @@ const _sfc_main = {
         });
         return;
       }
-      const req = common_vendor.wx$1.requestSubscribeMessage({ tmplIds });
+      const req = common_vendor.wx$1.requestSubscribeMessage({
+        tmplIds
+      });
       if (req && typeof req.then === "function") {
         req.then((res) => {
-          common_vendor.index.__f__("log", "at pages/index/index.vue:107", "requestSubscribeMessage 成功:", res);
+          common_vendor.index.__f__("log", "at pages/index/index.vue:109", "requestSubscribeMessage 成功:", res);
         }).catch((err) => {
-          common_vendor.index.__f__("log", "at pages/index/index.vue:110", "requestSubscribeMessage 失败:", err);
+          common_vendor.index.__f__("log", "at pages/index/index.vue:112", "requestSubscribeMessage 失败:", err);
         });
       } else {
         common_vendor.wx$1.requestSubscribeMessage({
           tmplIds,
           success: (res) => {
-            common_vendor.index.__f__("log", "at pages/index/index.vue:116", "requestSubscribeMessage 成功:", res);
+            common_vendor.index.__f__("log", "at pages/index/index.vue:118", "requestSubscribeMessage 成功:", res);
           },
           fail: (err) => {
-            common_vendor.index.__f__("log", "at pages/index/index.vue:119", "requestSubscribeMessage 失败:", err);
+            common_vendor.index.__f__("log", "at pages/index/index.vue:121", "requestSubscribeMessage 失败:", err);
           }
         });
       }
@@ -111,7 +113,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         b: menuIndex,
         c: common_vendor.o(($event) => $options.openPages(menu), menuIndex),
         d: $data.isOpenItemTitle === menu.title ? 1 : "",
-        e: "abbb8c9a-1-" + i0 + ",abbb8c9a-0",
+        e: "66f2f270-1-" + i0 + ",66f2f270-0",
         f: common_vendor.p({
           title: menu.title,
           link: true,

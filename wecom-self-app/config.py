@@ -9,17 +9,19 @@ DEBUG = os.environ.get("DEBUG", "false").strip().lower() in {"1", "true", "yes",
 
 # MongoDB 数据库（可通过环境变量覆盖）
 MONGO_URI: str = os.environ.get(
-	"MONGO_URI",
-	"mongodb://root:",
+    "MONGO_URI",
+    "mongodb://root:",
 )
 MONGO_DB_NAME: str = os.environ.get("MONGO_DB_NAME", "demo")
 
-# 企业微信相关配置（统一从此处读取）
-WXWORK_CORP_ID: str = os.environ.get("WXWORK_CORP_ID", "your_corp_id")
-WXWORK_PROVIDER_SECRET: str = os.environ.get("WXWORK_PROVIDER_SECRET", "your_provider_secret")
-# 第三方应用配置
-WXWORK_TOKEN: str = os.environ.get("WXWORK_TOKEN", "your_token")
-WXWORK_ENCODING_AES_KEY: str = os.environ.get("WXWORK_ENCODING_AES_KEY", "your_aes_key")
-WXWORK_SUITE_ID: str = os.environ.get("WXWORK_SUITE_ID", "your_suite_id")
-WXWORK_SUITE_SECRET: str = os.environ.get("WXWORK_SUITE_SECRET", "your_suite_secret")
+# 企业微信自建应用（企业内部开发）
+WXWORK_CORP_ID: str = os.environ.get("WXWORK_CORP_ID", "")
+# 应用 AgentId，网页授权 snsapi_privateinfo / snsapi_userinfo 时必填
+WXWORK_AGENT_ID: str = os.environ.get("WXWORK_AGENT_ID", "")
+# 应用 Secret（在管理后台「应用管理 - 自建应用」中获取，用于 gettoken）
+WXWORK_AGENT_SECRET: str = os.environ.get("WXWORK_AGENT_SECRET", "")
+# 回调 URL 配置的 Token 与 EncodingAESKey
+WXWORK_TOKEN: str = os.environ.get("WXWORK_TOKEN", "")
+WXWORK_ENCODING_AES_KEY: str = os.environ.get("WXWORK_ENCODING_AES_KEY", "")
+# 网页授权完成后的前端回调地址（可信域名内）
 WXWORK_OAUTH_REDIRECT: str | None = os.environ.get("WXWORK_OAUTH_REDIRECT")

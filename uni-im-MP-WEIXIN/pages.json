@@ -11,28 +11,32 @@
 			"style": {
 				"navigationBarTitleText": "获取群码"
 			}
-		}
-		// #ifndef MP-WEIXIN
-		, {
-			"path": "uni_modules/uni-im/pages/chat/chat",
+		},
+		{
+			"path": "pages/workbench/groupList/groupList",
 			"style": {
-				"navigationBarTitleText": "",
-				"enablePullDownRefresh": false,
-				"app-plus": {
-					"titleNView": {
-						"buttons": [{
-							"color": "#333",
-							"colorPressed": "#111111",
-							"float": "right",
-							"text": "...",
-							"fontSize": 26,
-							"onclick": "more"
-						}]
-					}
-				}
+				"navigationBarTitleText": "我的群聊"
 			}
 		}
-		// #endif
+		// {
+		// 	"path": "uni_modules/uni-im/pages/chat/chat",
+		// 	"style": {
+		// 		"navigationBarTitleText": "",
+		// 		"enablePullDownRefresh": false,
+		// 		"app-plus": {
+		// 			"titleNView": {
+		// 				"buttons": [{
+		// 					"color": "#333",
+		// 					"colorPressed": "#111111",
+		// 					"float": "right",
+		// 					"text": "...",
+		// 					"fontSize": 26,
+		// 					"onclick": "more"
+		// 				}]
+		// 			}
+		// 		}
+		// 	}
+		// }
 	],
 	"subPackages": [{
 		"root": "uni_modules/uni-id-pages/pages",

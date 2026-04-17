@@ -22,7 +22,7 @@ def _optional_int(params, key):
 
 @api_bp.route("/enterprise/contact/search", methods=["POST"])
 def api_enterprise_contact_search():
-    """通讯录单个搜索（服务商）。"""
+    """通讯录按 userid 读取成员（自建应用 user/get；query_word 视为 userid）。"""
     params = request.get_json() or {}
     try:
         auth_corpid = _require_str_param(params, "auth_corpid")
@@ -30,7 +30,7 @@ def api_enterprise_contact_search():
         data = enterprise_contact_api.search_contact(
             auth_corpid=auth_corpid,
             query_word=query_word,
-            provider_access_token=params.get("provider_access_token"),
+            access_token=params.get("access_token"),
             query_type=_optional_int(params, "query_type"),
             query_range=_optional_int(params, "query_range"),
             agentid=_optional_int(params, "agentid"),
@@ -49,7 +49,7 @@ def api_enterprise_contact_search():
 
 @api_bp.route("/enterprise/contact/batchsearch", methods=["POST"])
 def api_enterprise_contact_batchsearch():
-    """通讯录批量搜索（服务商）。"""
+    """通讯录批量按 userid 读取成员（自建应用）。"""
     params = request.get_json() or {}
     try:
         auth_corpid = _require_str_param(params, "auth_corpid")
@@ -59,7 +59,7 @@ def api_enterprise_contact_batchsearch():
         data = enterprise_contact_api.batch_search_contact(
             auth_corpid=auth_corpid,
             query_request_list=query_request_list,
-            provider_access_token=params.get("provider_access_token"),
+            access_token=params.get("access_token"),
             agentid=_optional_int(params, "agentid"),
         )
         return make_succ_response(data.get("query_result_list", data))
@@ -73,7 +73,7 @@ def api_enterprise_contact_batchsearch():
 
 @api_bp.route("/enterprise/contact/sort", methods=["POST"])
 def api_enterprise_contact_sort():
-    """通讯录 userid 排序（服务商）。"""
+    """通讯录 userid 排序（自建应用不支持，将返回错误说明）。"""
     params = request.get_json() or {}
     try:
         auth_corpid = _require_str_param(params, "auth_corpid")
@@ -86,7 +86,7 @@ def api_enterprise_contact_sort():
         data = enterprise_contact_api.sort_userid(
             auth_corpid=auth_corpid,
             useridlist=useridlist,
-            provider_access_token=params.get("provider_access_token"),
+            access_token=params.get("access_token"),
             sort_options=sort_options,
         )
         return make_succ_response(data.get("useridlist", data))

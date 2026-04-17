@@ -11,7 +11,6 @@ from wecom.api.helpers import _parse_int
 from wecom.dao import (
     delete_counterbyid,
     insert_counter,
-    query_all_corp_auths,
     query_corp_auth,
     query_counterbyid,
     query_group_chat,
@@ -26,6 +25,7 @@ from wecom.response import make_err_response, make_succ_empty_response, make_suc
 from wecom.services.service import token_service
 from wecom.services.wecom_client import WeComApiError, fetch_auth_info
 from wecom.services.wecom import fetch_agent_list
+import config
 
 
 @api_bp.route("/count", methods=["POST"])
@@ -142,20 +142,19 @@ def api_corp_auth_info():
 
 @api_bp.route("/v1/agent_ids", methods=["POST"])
 def api_agent_ids():
-    """前端调用：按 corp_id 获取可访问的应用 agentid 列表。"""
+    """前端调用：获取当前自建应用的 agentid（优先环境变量 WXWORK_AGENT_ID）。"""
     params = request.get_json(silent=True) or {}
-    corp_id = params.get("corp_id")
+    corp_id = params.get("corp_id") or config.WXWORK_CORP_ID
     if not corp_id:
         return make_err_response("missing corp_id")
 
-    corp_doc = query_corp_auth(corp_id)
-    if not corp_doc:
-        return make_err_response("corp_auth not found")
-    permanent_code = corp_doc.get("permanent_code")
-    if not permanent_code:
-        return make_err_response("permanent_code missing")
+    if config.WXWORK_AGENT_ID:
+        try:
+            return make_succ_response({"agentid": int(config.WXWORK_AGENT_ID)})
+        except ValueError:
+            return make_succ_response({"agentid": config.WXWORK_AGENT_ID})
 
-    access_token = token_service.get_corp_access_token(corp_id, permanent_code)
+    access_token = token_service.get_corp_access_token(corp_id)
     if not access_token:
         return make_err_response("unable to obtain access_token")
 
@@ -210,14 +209,7 @@ def api_jsapi_signature():
     if mode == "agent" and not agent_id:
         return make_err_response("missing agent_id")
 
-    corp_doc = query_corp_auth(corp_id)
-    if not corp_doc:
-        return make_err_response("corp_auth not found")
-    permanent_code = corp_doc.get("permanent_code")
-    if not permanent_code:
-        return make_err_response("permanent_code missing")
-
-    access_token = token_service.get_corp_access_token(corp_id, permanent_code)
+    access_token = token_service.get_corp_access_token(corp_id)
     if not access_token:
         return make_err_response("unable to obtain access_token")
 
@@ -256,26 +248,27 @@ def api_jsapi_signature():
 
 @api_bp.route("/update_corp_auths", methods=["POST"])
 def update_corp_auths():
-    """批量更新 `corp_auth` 集合中的授权信息。"""
+    """更新当前企业在 `corp_auth` 中的应用信息（自建应用：agent/get 结果写入 auth_corp_info）。"""
     results = {"updated": 0, "failed": 0, "errors": []}
-    docs = query_all_corp_auths()
-    for doc in docs:
-        try:
-            corp_id = doc.get("corp_id")
-            permanent_code = doc.get("permanent_code")
-            if not corp_id or not permanent_code:
-                results["failed"] += 1
-                results["errors"].append({"corp_id": corp_id, "error": "missing corp_id or permanent_code"})
-                continue
-            v2 = fetch_auth_info(corp_id, permanent_code)
-            doc["auth_corp_info"] = v2.get("auth_corp_info")
-            doc["updated_at"] = datetime.now(timezone.utc)
-            update_corp_auth(doc)
-            results["updated"] += 1
-        except WeComApiError as e:
-            results["failed"] += 1
-            results["errors"].append({"corp_id": doc.get("corp_id"), "error": str(e)})
-        except Exception as e:
-            results["failed"] += 1
-            results["errors"].append({"corp_id": doc.get("corp_id"), "error": str(e)})
+    cid = config.WXWORK_CORP_ID
+    if not cid:
+        return make_err_response("WXWORK_CORP_ID not configured")
+    try:
+        access_token = token_service.get_corp_access_token(cid)
+        if not access_token:
+            results["failed"] = 1
+            results["errors"].append({"corp_id": cid, "error": "unable to obtain access_token"})
+            return make_succ_response(results)
+        v2 = fetch_auth_info(cid, "")
+        doc = query_corp_auth(cid) or {"corp_id": cid}
+        doc["auth_corp_info"] = v2.get("auth_corp_info")
+        doc["updated_at"] = datetime.now(timezone.utc)
+        update_corp_auth(doc)
+        results["updated"] = 1
+    except WeComApiError as e:
+        results["failed"] = 1
+        results["errors"].append({"corp_id": cid, "error": str(e)})
+    except Exception as e:
+        results["failed"] = 1
+        results["errors"].append({"corp_id": cid, "error": str(e)})
     return make_succ_response(results)

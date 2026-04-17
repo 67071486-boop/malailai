@@ -1,102 +1,120 @@
 ****************************************************************
-*  2026/3/24 12:14:24
+*  2026/4/7 13:02:59
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/pages/index/index.vue
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/pages/workbench/groupList/groupList.vue
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/App.vue?vue&type=style&index=0&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/App.vue?vue&type=style&index=0&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/pages/workbench/qrcode/qrcode.vue?vue&type=style&index=0&scoped=d0ac87b1&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/pages/workbench/qrcode/qrcode.vue?vue&type=style&index=0&scoped=d0ac87b1&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/userinfo/userinfo.vue?vue&type=style&index=0&scoped=0be2f605&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/pages/index/index.vue?vue&type=style&index=0&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/login/login-withpwd.vue?vue&type=style&index=0&scoped=58ed63b0&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/userinfo/userinfo.vue?vue&type=style&index=0&scoped=0be2f605&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/userinfo/deactivate/deactivate.vue?vue&type=style&index=0&lang.css
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/login/login-withoutpwd.vue?vue&type=style&index=0&scoped=f1f87fcd&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/userinfo/bind-mobile/bind-mobile.vue?vue&type=style&index=0&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/userinfo/bind-mobile/bind-mobile.vue?vue&type=style&index=0&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/login/login-withoutpwd.vue?vue&type=style&index=0&scoped=f1f87fcd&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/login/login-withpwd.vue?vue&type=style&index=0&scoped=58ed63b0&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/register/register.vue?vue&type=style&index=0&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/userinfo/deactivate/deactivate.vue?vue&type=style&index=0&lang.css
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/login/login-smscode.vue?vue&type=style&index=0&scoped=661d78f6&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/login/login-smscode.vue?vue&type=style&index=0&scoped=661d78f6&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/retrieve/retrieve.vue?vue&type=style&index=0&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/register/register.vue?vue&type=style&index=0&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/userinfo/change_pwd/change_pwd.vue?vue&type=style&index=0&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/retrieve/retrieve.vue?vue&type=style&index=0&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/retrieve/retrieve-by-email.vue?vue&type=style&index=0&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/register/register-by-email.vue?vue&type=style&index=0&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/register/register-by-email.vue?vue&type=style&index=0&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/userinfo/change_pwd/change_pwd.vue?vue&type=style&index=0&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/userinfo/set-pwd/set-pwd.vue?vue&type=style&index=0&scoped=e5e1f63f&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/retrieve/retrieve-by-email.vue?vue&type=style&index=0&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/components/uni-id-pages-avatar/uni-id-pages-avatar.vue?vue&type=style&index=0&lang.css
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/pages/userinfo/set-pwd/set-pwd.vue?vue&type=style&index=0&scoped=e5e1f63f&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-list/components/uni-list-item/uni-list-item.vue?vue&type=style&index=0&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-list/components/uni-list/uni-list.vue?vue&type=style&index=0&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-list/components/uni-list/uni-list.vue?vue&type=style&index=0&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/components/uni-id-pages-avatar/uni-id-pages-avatar.vue?vue&type=style&index=0&lang.css
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-popup/components/uni-popup/uni-popup.vue?vue&type=style&index=0&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-popup/components/uni-popup-dialog/uni-popup-dialog.vue?vue&type=style&index=0&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-popup/components/uni-popup-dialog/uni-popup-dialog.vue?vue&type=style&index=0&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/components/uni-id-pages-bind-mobile/uni-id-pages-bind-mobile.vue?vue&type=style&index=0&scoped=e0127e04&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-forms/components/uni-forms-item/uni-forms-item.vue?vue&type=style&index=0&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-popup/components/uni-popup/uni-popup.vue?vue&type=style&index=0&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-easyinput/components/uni-easyinput/uni-easyinput.vue?vue&type=style&index=0&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-list/components/uni-list-item/uni-list-item.vue?vue&type=style&index=0&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/components/uni-id-pages-bind-mobile/uni-id-pages-bind-mobile.vue?vue&type=style&index=0&scoped=e0127e04&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/pages/workbench/groupList/groupList.vue?vue&type=style&index=0&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-forms/components/uni-forms/uni-forms.vue?vue&type=style&index=0&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/components/uni-id-pages-agreements/uni-id-pages-agreements.vue?vue&type=style&index=0&scoped=40b82fe9&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-captcha/components/uni-captcha/uni-captcha.vue?vue&type=style&index=0&scoped=a00179ae&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-easyinput/components/uni-easyinput/uni-easyinput.vue?vue&type=style&index=0&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/components/uni-id-pages-agreements/uni-id-pages-agreements.vue?vue&type=style&index=0&scoped=40b82fe9&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/components/uni-id-pages-fab-login/uni-id-pages-fab-login.vue?vue&type=style&index=0&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/components/uni-id-pages-fab-login/uni-id-pages-fab-login.vue?vue&type=style&index=0&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-captcha/components/uni-popup-captcha/uni-popup-captcha.vue?vue&type=style&index=0&scoped=d021b99b&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/pages/index/index.vue?vue&type=style&index=0&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/components/uni-id-pages-sms-form/uni-id-pages-sms-form.vue?vue&type=style&index=0&scoped=4b649130&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/components/uni-id-pages-sms-form/uni-id-pages-sms-form.vue?vue&type=style&index=0&scoped=4b649130&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-captcha/components/uni-captcha/uni-captcha.vue?vue&type=style&index=0&scoped=a00179ae&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/components/uni-id-pages-email-form/uni-id-pages-email-form.vue?vue&type=style&index=0&scoped=bcd6b47b&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-forms/components/uni-forms/uni-forms.vue?vue&type=style&index=0&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-captcha/components/uni-popup-captcha/uni-popup-captcha.vue?vue&type=style&index=0&scoped=d021b99b&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-forms/components/uni-forms-item/uni-forms-item.vue?vue&type=style&index=0&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-icons/components/uni-icons/uni-icons.vue?vue&type=style&index=0&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-im-msg-reader/components/uni-im-msg-reader/uni-im-msg-reader.vue?vue&type=style&index=0&lang.scss
 ****************************************************************
 ****************************************************************
-*  transform: C:/Users/Administrator/Documents/HBuilderProjects/uni-im-MP-WEIXIN/uni_modules/uni-badge/components/uni-badge/uni-badge.vue?vue&type=style&index=0&lang.scss
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-id-pages/components/uni-id-pages-email-form/uni-id-pages-email-form.vue?vue&type=style&index=0&scoped=bcd6b47b&lang.scss
+****************************************************************
+****************************************************************
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-icons/components/uni-icons/uni-icons.vue?vue&type=style&index=0&lang.scss
+****************************************************************
+****************************************************************
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-badge/components/uni-badge/uni-badge.vue?vue&type=style&index=0&lang.scss
+****************************************************************
+****************************************************************
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-search-bar/components/uni-search-bar/uni-search-bar.vue?vue&type=style&index=0&lang.scss
+****************************************************************
+****************************************************************
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-im/components/uni-im-info-card/uni-im-info-card.vue?vue&type=style&index=0&lang.scss
+****************************************************************
+****************************************************************
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-im/components/uni-im-load-state/uni-im-load-state.vue?vue&type=style&index=0&lang.scss
+****************************************************************
+****************************************************************
+*  transform: C:/Users/Administrator/Documents/HBuilderProjects/码上来项目/malailai/uni-im-MP-WEIXIN/uni_modules/uni-segmented-control/components/uni-segmented-control/uni-segmented-control.vue?vue&type=style&index=0&scoped=86aa1171&lang.scss
 ****************************************************************

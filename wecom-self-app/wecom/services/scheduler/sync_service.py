@@ -6,7 +6,6 @@ from datetime import datetime, timezone, timedelta
 from wecom.dao import (
     query_pending_orders,
     query_group_chat_by_name,
-    query_corp_auth,
     mark_pending_done,
     upsert_group_chat,
     delete_expired_pending_orders,
@@ -20,6 +19,7 @@ from wecom.services.wecom.kf.session_manager import KfSessionApi
 from wecom.services.wecom.externalcontact.contact_way_manager import ContactWayApi
 from wecom.services.biz.handlers.kf.config_cache import KfConfigCache
 from wecom.services.biz.handlers.kf.sender import KfMessageSender
+import config
 
 # 这里放置主动同步实现（订单二维码自动推送）
 DEFAULT_WELCOME_REPLY = "您好！我是群码自助机器人，请把订单号发给我获取二维码"
@@ -48,8 +48,7 @@ def sync_tick() -> None:
     now = datetime.utcnow()
     delete_expired_pending_orders(now - timedelta(days=1))
 
-    # 定期刷新 suite_access_token（如未过期则直接返回缓存）
-    token_service.get_suite_access_token()
+    token_service.get_corp_access_token(config.WXWORK_CORP_ID)
 
     kf_api = KfSessionApi()
     sender = KfMessageSender(kf_api)
@@ -86,11 +85,7 @@ def sync_tick() -> None:
             mark_pending_done(corp_id, order_no, external_userid, result="taken")
             continue
 
-        corp_auth = query_corp_auth(corp_id)
-        if not corp_auth or not corp_auth.get("permanent_code"):
-            continue
-
-        access_token = token_service.get_corp_access_token(corp_id, corp_auth["permanent_code"])
+        access_token = token_service.get_corp_access_token(corp_id or config.WXWORK_CORP_ID)
         if not access_token:
             continue
 

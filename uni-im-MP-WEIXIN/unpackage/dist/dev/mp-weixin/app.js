@@ -22,9 +22,12 @@ var __async = (__this, __arguments, generator) => {
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 const common_vendor = require("./common/vendor.js");
 const uni_modules_uniIdPages_init = require("./uni_modules/uni-id-pages/init.js");
+require("./uni_modules/uni-im/sdk/index.js");
+require("./uni_modules/uni-im-msg-reader/extension.js");
 if (!Math) {
   "./pages/index/index.js";
   "./pages/workbench/qrcode/qrcode.js";
+  "./pages/workbench/groupList/groupList.js";
   "./uni_modules/uni-id-pages/pages/userinfo/userinfo.js";
   "./uni_modules/uni-id-pages/pages/login/login-withoutpwd.js";
   "./uni_modules/uni-id-pages/pages/login/login-withpwd.js";

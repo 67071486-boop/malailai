@@ -51,11 +51,11 @@
 					// 	path: '/uni_modules/uni-im/pages/contacts/addPeopleGroups/addPeopleGroups',
 					// 	srcName: 'search'
 					// },
-					// {
-					// 	title: '我的群聊',
-					// 	path: '/uni_modules/uni-im/pages/contacts/groupList/groupList',
-					// 	srcName: 'group'
-					// },
+					{
+						title: '我的群聊',
+						path: '/pages/workbench/groupList/groupList',
+						srcName: 'group'
+					},
 					// {
 					// 	title: '创建群聊',
 					// 	path: '/uni_modules/uni-im/pages/contacts/createGroup/createGroup',
@@ -100,7 +100,9 @@
 					});
 					return;
 				}
-				const req = wx.requestSubscribeMessage({ tmplIds });
+				const req = wx.requestSubscribeMessage({
+					tmplIds
+				});
 				if (req && typeof req.then === 'function') {
 					req
 						.then((res) => {

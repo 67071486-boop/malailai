@@ -5,7 +5,8 @@ from typing import Dict, Optional
 from ..dispatcher import BizHandler
 from wecom.services.wecom.externalcontact.group_chat_manager import ContactGroupChatApi
 from wecom.services.service import token_service
-from wecom.dao import query_corp_auth, query_group_chat, upsert_group_chat, mark_group_chat_dismissed
+from wecom.dao import query_group_chat, upsert_group_chat, mark_group_chat_dismissed
+import config
 
 
 class ContactEventHandler(BizHandler):
@@ -27,12 +28,7 @@ class ContactEventHandler(BizHandler):
             print("[biz.contact] missing corp_id or chat_id", xml, flush=True)
             return
 
-        corp_auth = query_corp_auth(corp_id)
-        if not corp_auth or not corp_auth.get("permanent_code"):
-            print("[biz.contact] corp_auth not found for", corp_id, flush=True)
-            return
-
-        access_token = token_service.get_corp_access_token(corp_id, corp_auth["permanent_code"])
+        access_token = token_service.get_corp_access_token(corp_id or config.WXWORK_CORP_ID)
         if not access_token:
             print("[biz.contact] access_token unavailable for", corp_id, flush=True)
             return

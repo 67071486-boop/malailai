@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "我的群聊",
+  "usingComponents": {
+    "uni-search-bar": "../../../uni_modules/uni-search-bar/components/uni-search-bar/uni-search-bar",
+    "uni-im-info-card": "../../../uni_modules/uni-im/components/uni-im-info-card/uni-im-info-card",
+    "uni-im-load-state": "../../../uni_modules/uni-im/components/uni-im-load-state/uni-im-load-state"
+  }
+}

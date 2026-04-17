@@ -2,8 +2,8 @@ from urllib.parse import quote
 from wecom.services.wecom_client import WeComApiError
 from flask import Blueprint, request, redirect, url_for, session
 from flask.typing import ResponseReturnValue
-from wecom.services.service.callback_service import handle_data_callback, handle_command_callback
-from wecom.services.service.token_service import get_suite_access_token
+from wecom.services.service.callback_service import handle_wecom_callback
+from wecom.services.service.token_service import get_corp_access_token
 from wecom.services.wecom.auth.web_oauth import build_oauth2_url, get_user_info
 from wecom.response import make_succ_response, make_err_response
 import config
@@ -14,17 +14,12 @@ wxwork_bp = Blueprint("wxwork", __name__, url_prefix="/wxwork")
 _DEFAULT_REDIRECT_URI = config.WXWORK_OAUTH_REDIRECT
 
 
-@wxwork_bp.route("/callback/data", methods=["GET", "POST"])
-def callback_data() -> ResponseReturnValue:
-    """企业微信数据回调，解密和分发由 callback_service 处理。"""
-    print("[数据回调入口] ", flush=True)
-    return handle_data_callback(request)
+@wxwork_bp.route("/callback", methods=["GET", "POST"])
+def callback_message() -> ResponseReturnValue:
+    """自建应用「接收消息」服务器 URL（企微后台仅支持填一个地址：`https://你的域名/wxwork/callback`）。"""
+    print("[接收消息回调] ", request.method, flush=True)
+    return handle_wecom_callback(request)
 
-@wxwork_bp.route("/callback/command", methods=["GET", "POST"])
-def callback_command() -> ResponseReturnValue:
-    """企业微信指令回调（suite_ticket、create_auth 等）。"""
-    print("[指令回调入口] ", flush=True)
-    return handle_command_callback(request)
 
 @wxwork_bp.route("/oauth/login", methods=["GET"])
 def oauth_login():
@@ -39,9 +34,11 @@ def oauth_login():
         redirect_uri,
         scope="snsapi_privateinfo",
         state=state,
-        appid=config.WXWORK_SUITE_ID,
+        appid=config.WXWORK_CORP_ID,
+        agent_id=config.WXWORK_AGENT_ID or None,
     )
     return redirect(login_url)
+
 
 @wxwork_bp.route("/oauth/callback", methods=["GET"])
 def oauth_callback():
@@ -55,22 +52,22 @@ def oauth_callback():
         print("[wxwork] oauth_callback 未带 code，重定向到授权入口", flush=True)
         return redirect(login_url)
 
-    suite_token = get_suite_access_token()
-    if not suite_token:
-        print("[wxwork] oauth_callback 缺少 suite_access_token，请先确保收到 suite_ticket。code=", code, "args=", dict(request.args), flush=True)
-        return make_err_response("缺少 suite_ticket 或获取 suite_access_token 失败，请先确保回调已收到 suite_ticket"), 500
+    access_token = get_corp_access_token(config.WXWORK_CORP_ID)
+    if not access_token:
+        print("[wxwork] oauth_callback 无法获取 access_token，请检查 WXWORK_AGENT_SECRET。code=", code, "args=", dict(request.args), flush=True)
+        return make_err_response("无法获取 access_token，请检查 WXWORK_CORP_ID 与 WXWORK_AGENT_SECRET"), 500
 
     try:
         data = get_user_info(code)
     except WeComApiError as e:
-        print("[wxwork] getuserinfo3rd WeCom API 错误:", e, "code=", code, flush=True)
-        return make_err_response(f"getuserinfo3rd 失败: {e}"), 500
+        print("[wxwork] auth/getuserinfo WeCom API 错误:", e, "code=", code, flush=True)
+        return make_err_response(f"auth/getuserinfo 失败: {e}"), 500
     except Exception as exc:
         import traceback
 
-        print("[wxwork] 调用 getuserinfo3rd 异常 code=", code, "exc=", exc, flush=True)
+        print("[wxwork] 调用 auth/getuserinfo 异常 code=", code, "exc=", exc, flush=True)
         traceback.print_exc()
-        return make_err_response(f"调用 getuserinfo3rd 异常: {exc}"), 500
+        return make_err_response(f"调用 auth/getuserinfo 异常: {exc}"), 500
 
     # 将用户信息写入 session（如果已配置 SECRET_KEY）
     try:

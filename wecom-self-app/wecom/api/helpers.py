@@ -1,6 +1,6 @@
-from wecom.dao import query_all_corp_auths
 from wecom.response import make_err_response
 from wecom.services.service import token_service
+import config
 
 
 def _parse_int(value, default):
@@ -11,25 +11,11 @@ def _parse_int(value, default):
 
 
 def _resolve_access_token(params):
-    """根据必填 corp_id 获取对应企业 access_token。"""
-    corp_id = params.get("corp_id")
+    """根据 corp_id 获取自建应用 access_token。"""
+    corp_id = params.get("corp_id") or config.WXWORK_CORP_ID
     if not corp_id:
         return None
-
-    corp_doc = None
-    all_docs = query_all_corp_auths()
-    for d in all_docs:
-        if d.get("corp_id") == corp_id:
-            corp_doc = d
-            break
-
-    if not corp_doc:
-        return None
-    permanent_code = corp_doc.get("permanent_code")
-    corp_id = corp_doc.get("corp_id")
-    if not permanent_code or not corp_id:
-        return None
-    return token_service.get_corp_access_token(corp_id, permanent_code)
+    return token_service.get_corp_access_token(corp_id)
 
 
 def _as_list(value, cast=None):
@@ -81,4 +67,4 @@ def _require_str_param(params, key):
 
 
 def _missing_token_response():
-    return make_err_response("missing corp_id or corp_auth not found")
+    return make_err_response("missing corp_id or unable to obtain access_token")

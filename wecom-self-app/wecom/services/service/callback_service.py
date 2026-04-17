@@ -1,19 +1,15 @@
 import json
 import re
-import xmltodict # type: ignore
+import xmltodict  # type: ignore
 from flask import Request, jsonify
 from flask.typing import ResponseReturnValue
 from wecom.wechat_official.WXBizMsgCrypt import WXBizMsgCrypt
 
 from wecom.services.service.token_service import (
     WXWORK_CORP_ID,
-    WXWORK_SUITE_ID,
     WXWORK_TOKEN,
     WXWORK_ENCODING_AES_KEY,
-    get_suite_access_token,
-    save_suite_ticket,
 )
-from wecom.services.service.auth_service import async_get_permanent_code
 from wecom.services.biz import biz_dispatcher
 
 
@@ -87,13 +83,21 @@ def _extract_event_type(decrypted_json: dict):
     return xml.get("InfoType") or xml.get("Event") or xml.get("MsgType")
 
 
-def handle_data_callback(request: Request) -> ResponseReturnValue:
+def _default_receive_id_from_body(post_data: str) -> str:
+    m = re.search(r"<ToUserName><!\[CDATA\[(.*?)\]\]></ToUserName>", post_data)
+    if m and m.group(1):
+        return m.group(1)
+    return WXWORK_CORP_ID or ""
+
+
+def handle_wecom_callback(request: Request) -> ResponseReturnValue:
+    """自建应用「接收消息」统一入口：URL 校验与消息/事件解密分发。"""
     if request.method == "GET":
-        print("[callback_service] 数据回调收到 GET", flush=True)
+        print("[callback_service] 收到 GET（URL 校验）", flush=True)
         return _verify_url(request.args, WXWORK_CORP_ID)
 
     if request.method == "POST":
-        print("[callback_service] 数据回调收到 POST", flush=True)
+        print("[callback_service] 收到 POST", flush=True)
         valid, error = _validate_params(request.args, ["msg_signature", "timestamp", "nonce"])
         if not valid:
             return jsonify({"code": 1, "message": error}), 400
@@ -103,12 +107,11 @@ def handle_data_callback(request: Request) -> ResponseReturnValue:
         nonce = request.args["nonce"]
         post_data = request.data.decode("utf-8")
 
-        m = re.search(r"<ToUserName><!\[CDATA\[(.*?)\]\]></ToUserName>", post_data)
-        receive_id = m.group(1) if m else WXWORK_SUITE_ID
+        receive_id = _default_receive_id_from_body(post_data)
         decrypted_json = _decrypt_body(post_data, msg_signature, timestamp, nonce, receive_id)
         if decrypted_json is None:
             print(
-                "[callback_service] 数据回调解密失败 args=",
+                "[callback_service] 解密失败 args=",
                 dict(request.args), "body=", post_data[:1000],
                 flush=True,
             )
@@ -116,79 +119,27 @@ def handle_data_callback(request: Request) -> ResponseReturnValue:
 
         evt_type = _extract_event_type(decrypted_json)
         if not evt_type:
-            print("[callback_service] 数据回调缺少事件类型，跳过分发 receive_id=", receive_id, flush=True)
+            print("[callback_service] 缺少事件类型，跳过分发 receive_id=", receive_id, flush=True)
             return "success", 200
-        print("[callback_service] 数据回调解密成功 receive_id=", receive_id, "event=", evt_type, flush=True)
-        _dispatch_biz(evt_type, decrypted_json, receive_id=receive_id, source="data")
+        print("[callback_service] 解密成功 receive_id=", receive_id, "event=", evt_type, flush=True)
+        _dispatch_biz(evt_type, decrypted_json, receive_id=receive_id, source="callback")
         return "success", 200
 
     return "Method Not Allowed", 405
+
+
+def handle_data_callback(request: Request) -> ResponseReturnValue:
+    """兼容旧路径 /callback/data，逻辑与统一入口一致。"""
+    return handle_wecom_callback(request)
 
 
 def handle_command_callback(request: Request) -> ResponseReturnValue:
-    if request.method == "GET":
-        print("[callback_service] 指令回调收到 GET", flush=True)
-        return _verify_url(request.args, WXWORK_CORP_ID)
-
-    if request.method == "POST":
-        print("[callback_service] 指令回调收到 POST", flush=True)
-        valid, error = _validate_params(request.args, ["msg_signature", "timestamp", "nonce"])
-        if not valid:
-            return jsonify({"code": 1, "message": error}), 400
-
-        msg_signature = request.args["msg_signature"]
-        timestamp = request.args["timestamp"]
-        nonce = request.args["nonce"]
-        post_data = request.data.decode("utf-8")
-
-        m = re.search(r"<ToUserName><!\[CDATA\[(.*?)\]\]></ToUserName>", post_data)
-        receive_id = m.group(1) if m else WXWORK_SUITE_ID
-        decrypted_json = _decrypt_body(post_data, msg_signature, timestamp, nonce, receive_id)
-        if decrypted_json is None:
-            print(
-                "[callback_service] 指令回调解密失败 args=",
-                dict(request.args), "body=", post_data[:1000],
-                flush=True,
-            )
-            return jsonify({"code": 1, "message": "DecryptMsg fail"}), 400
-
-        evt_type = _extract_event_type(decrypted_json)
-        if not evt_type:
-            print("[callback_service] 指令回调缺少 InfoType，跳过分发 receive_id=", receive_id, flush=True)
-            return "success", 200
-        print("[callback_service] 指令回调 InfoType=", evt_type, "receive_id=", receive_id, flush=True)
-        if evt_type == "suite_ticket":
-            suite_ticket = decrypted_json.get("xml", {}).get("SuiteTicket")
-            if suite_ticket:
-                try:
-                    save_suite_ticket(suite_ticket)
-                    print("[callback_service] 已保存 suite_ticket 长度=", len(suite_ticket), flush=True)
-                    get_suite_access_token(force_refresh=True)
-                except Exception:
-                    import traceback
-
-                    print("[callback_service] 处理 suite_ticket 出现异常", flush=True)
-                    traceback.print_exc()
-        elif evt_type == "create_auth":
-            auth_code = decrypted_json.get("xml", {}).get("AuthCode")
-            if auth_code:
-                try:
-                    print("[callback_service] 收到 AuthCode=", auth_code, flush=True)
-                    async_get_permanent_code(auth_code)
-                except Exception:
-                    import traceback
-
-                    print("[callback_service] 异步获取永久授权码启动异常 auth_code=", auth_code, flush=True)
-                    traceback.print_exc()
-                else:
-                    _dispatch_biz(evt_type, decrypted_json, receive_id=receive_id, source="command")
-        else:
-            # 其他 InfoType 统一交由业务分发（如 change_external_chat 等）
-            _dispatch_biz(evt_type, decrypted_json, receive_id=receive_id, source="command")
-        # 可扩展更多 InfoType 分支
-        return "success", 200
-
-    return "Method Not Allowed", 405
+    """兼容旧路径 /callback/command，逻辑与统一入口一致。"""
+    return handle_wecom_callback(request)
 
 
-__all__ = ["handle_data_callback", "handle_command_callback"]
+__all__ = [
+    "handle_wecom_callback",
+    "handle_data_callback",
+    "handle_command_callback",
+]

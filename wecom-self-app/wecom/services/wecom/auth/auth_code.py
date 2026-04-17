@@ -1,60 +1,47 @@
-"""应用授权（第三方应用）相关接口封装。
-
-包含：获取 pre_auth_code、获取永久授权码（代理到 SuiteApi）、
-以及查询企业授权信息（v2 接口）。
-本模块对外提供 `AppAuthApi` 类与便捷函数 `fetch_pre_auth_code`/`fetch_auth_info`。
-"""
-from typing import Any, Dict, Optional
+"""应用授权相关接口（自建应用：无 suite / 永久授权码流程）。"""
+from typing import Any, Dict
 
 from ..base import BaseClient, WeComApiError
-from .access_token import SuiteApi
+from ..agent.agent_api import AgentApi
 from wecom.services.service import token_service
+import config
 
 
 class AppAuthApi(BaseClient):
     def __init__(self, session=None, timeout: int = 10):
         super().__init__(session=session, timeout=timeout)
-        self._suite_api = SuiteApi(session=self.session, timeout=self.timeout)
+        self._timeout = timeout
+        self._agent_api = AgentApi(session=self.session, timeout=timeout)
 
     def get_pre_auth_code(self, suite_id: str) -> Dict[str, Any]:
-        """向企业微信申请 pre_auth_code，供企业进入授权页使用。"""
-        token = token_service.get_suite_access_token_cached()
-        if not token:
-            raise WeComApiError("missing suite_access_token")
-        url = "https://qyapi.weixin.qq.com/cgi-bin/service/get_pre_auth_code"
-        payload = {"suite_id": suite_id}
-        data = self._do_post(url + f"?suite_access_token={token}", json=payload)
-        self._raise_if_errcode(data, "get_pre_auth_code", required_keys=["pre_auth_code"])
-        return data
+        del suite_id
+        raise WeComApiError("自建应用不支持 get_pre_auth_code（仅第三方应用安装授权使用）")
 
     def get_permanent_code(self, auth_code: str) -> Dict[str, Any]:
-        """通过 `auth_code` 获取 `permanent_code`，内部委托给 `SuiteApi.get_permanent_code`。"""
-        return self._suite_api.get_permanent_code(auth_code)
+        del auth_code
+        raise WeComApiError("自建应用不支持 get_permanent_code")
 
     def get_auth_info(self, auth_corpid: str, permanent_code: str) -> Dict[str, Any]:
-        """调用企业微信 v2 `get_auth_info` 接口以获取企业授权详情。"""
-        token = token_service.get_suite_access_token_cached()
+        """返回结构兼容旧代码：含 auth_corp_info 键（此处为 agent/get 详情）。"""
+        del permanent_code
+        cid = auth_corpid or config.WXWORK_CORP_ID
+        token = token_service.get_corp_access_token(cid)
         if not token:
-            raise WeComApiError("missing suite_access_token")
-        url = "https://qyapi.weixin.qq.com/cgi-bin/service/v2/get_auth_info"
-        payload = {"auth_corpid": auth_corpid, "permanent_code": permanent_code}
-        data = self._do_post(url + f"?suite_access_token={token}", json=payload)
-        self._raise_if_errcode(data, "get_auth_info", required_keys=["auth_corp_info"])
-        return data
+            raise WeComApiError("missing access_token")
+        if not getattr(config, "WXWORK_AGENT_ID", None):
+            raise WeComApiError("missing WXWORK_AGENT_ID")
+        detail = self._agent_api.get_agent(token, config.WXWORK_AGENT_ID)
+        return {"auth_corp_info": detail}
 
     def get_corp_token(self, auth_corpid: str, permanent_code: str) -> Dict[str, Any]:
-        """根据企业的 `auth_corpid` 和 `permanent_code` 获取该企业的 access_token。"""
-        token = token_service.get_suite_access_token_cached()
+        del permanent_code
+        cid = auth_corpid or config.WXWORK_CORP_ID
+        token = token_service.get_corp_access_token(cid)
         if not token:
-            raise WeComApiError("missing suite_access_token")
-        url = "https://qyapi.weixin.qq.com/cgi-bin/service/get_corp_token"
-        payload = {"auth_corpid": auth_corpid, "permanent_code": permanent_code}
-        data = self._do_post(url + f"?suite_access_token={token}", json=payload)
-        self._raise_if_errcode(data, "get_corp_token", required_keys=["access_token", "expires_in"])
-        return data
+            raise WeComApiError("missing access_token")
+        return {"access_token": token, "expires_in": 7200}
 
     def get_app_permissions(self, access_token: str) -> Dict[str, Any]:
-        """获取指定应用的权限详情。"""
         if not access_token:
             raise WeComApiError("missing access_token")
         url = "https://qyapi.weixin.qq.com/cgi-bin/agent/get_permissions"
@@ -70,8 +57,7 @@ def fetch_pre_auth_code(
     timeout: int = 10,
 ) -> Dict[str, Any]:
     client = AppAuthApi(session=session, timeout=timeout)
-    data = client.get_pre_auth_code(suite_id)
-    return data
+    return client.get_pre_auth_code(suite_id)
 
 
 def fetch_auth_info(
@@ -92,7 +78,6 @@ def fetch_corp_token(
     session=None,
     timeout: int = 10,
 ) -> Dict[str, Any]:
-    """便捷函数：使用 `AppAuthApi` 获取企业 access_token 并返回响应数据。"""
     client = AppAuthApi(session=session, timeout=timeout)
     return client.get_corp_token(auth_corpid, permanent_code)
 
@@ -103,6 +88,5 @@ def fetch_app_permissions(
     session=None,
     timeout: int = 10,
 ) -> Dict[str, Any]:
-    """便捷函数：使用 `AppAuthApi` 获取应用权限详情（app_permissions）。"""
     client = AppAuthApi(session=session, timeout=timeout)
     return client.get_app_permissions(access_token)

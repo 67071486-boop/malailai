@@ -90,7 +90,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       placeholder: "请输入手机号",
       modelValue: $data.formData.mobile
     }),
-    e: common_vendor.sr("smsForm", "7ea58508-1"),
+    e: common_vendor.sr("smsForm", "182a3379-1"),
     f: common_vendor.o(($event) => $data.formData.code = $event, "b8"),
     g: common_vendor.p({
       type: "bind-mobile-by-sms",
@@ -98,7 +98,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       modelValue: $data.formData.code
     }),
     h: common_vendor.o((...args) => $options.submit && $options.submit(...args), "95"),
-    i: common_vendor.sr("popup", "7ea58508-2"),
+    i: common_vendor.sr("popup", "182a3379-2"),
     j: common_vendor.o($options.submit, "5f"),
     k: common_vendor.o(($event) => $data.formData.captcha = $event, "f4"),
     l: common_vendor.p({
